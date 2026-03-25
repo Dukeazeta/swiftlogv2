@@ -2,16 +2,14 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-
-interface DailyLogEntry {
-  day: string;
-  date: string;
-  content: string;
-}
+import { DailyLogEntry } from "@/lib/logbook";
 
 interface LogTableProps {
   entries: DailyLogEntry[];
+  editable?: boolean;
+  onEntryChange?: (day: DailyLogEntry["day"], content: string) => void;
 }
 
 const dayColors: Record<string, string> = {
@@ -22,7 +20,11 @@ const dayColors: Record<string, string> = {
   FRIDAY: "bg-pink-100 text-pink-800 border-pink-200",
 };
 
-export function LogTable({ entries }: LogTableProps) {
+export function LogTable({
+  entries,
+  editable = false,
+  onEntryChange,
+}: LogTableProps) {
   return (
     <>
       {/* Desktop Table View */}
@@ -56,9 +58,20 @@ export function LogTable({ entries }: LogTableProps) {
                   {formatDate(entry.date)}
                 </td>
                 <td className="px-4 py-4">
-                  <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                    {entry.content}
-                  </div>
+                  {editable ? (
+                    <Textarea
+                      value={entry.content}
+                      onChange={(event) =>
+                        onEntryChange?.(entry.day, event.target.value)
+                      }
+                      rows={Math.max(6, entry.content.split("\n").length + 2)}
+                      className="min-h-[180px] bg-gray-50 text-sm leading-relaxed"
+                    />
+                  ) : (
+                    <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                      {entry.content}
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
@@ -85,9 +98,20 @@ export function LogTable({ entries }: LogTableProps) {
               <span className="text-xs text-gray-600">{formatDate(entry.date)}</span>
             </div>
             <CardContent className="pt-4">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                {entry.content}
-              </p>
+              {editable ? (
+                <Textarea
+                  value={entry.content}
+                  onChange={(event) =>
+                    onEntryChange?.(entry.day, event.target.value)
+                  }
+                  rows={Math.max(6, entry.content.split("\n").length + 2)}
+                  className="min-h-[180px] bg-gray-50 text-sm leading-relaxed"
+                />
+              ) : (
+                <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                  {entry.content}
+                </p>
+              )}
             </CardContent>
           </Card>
         ))}

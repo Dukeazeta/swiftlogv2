@@ -2,20 +2,47 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import {
+  DailyLogEntry,
+  sortEntriesByWorkDay,
+  toIsoDateString,
+  WeeklyLogDetail,
+  WeeklyLogHistoryItem,
+} from "@/lib/logbook";
+import { saveLogSchema } from "@/lib/validations";
+import { getWeekDates } from "@/lib/utils";
 
-const saveLogSchema = z.object({
-  weekNumber: z.number().min(1),
-  summary: z.string().min(1),
-  entries: z.array(
-    z.object({
-      day: z.string(),
-      date: z.string(),
-      content: z.string(),
-    })
-  ),
-});
+const weekNumberQuerySchema = z.coerce.number().int().min(1);
 
-export async function GET() {
+function toWeeklyLogDetail(log: {
+  id: string;
+  weekNumber: number;
+  summary: string;
+  weekStart: Date;
+  weekEnd: Date;
+  updatedAt: Date;
+  entries: { day: string; date: Date; content: string }[];
+}): WeeklyLogDetail {
+  const entries = sortEntriesByWorkDay(
+    log.entries.map((entry) => ({
+      day: entry.day as DailyLogEntry["day"],
+      date: toIsoDateString(entry.date),
+      content: entry.content,
+    }))
+  );
+
+  return {
+    id: log.id,
+    weekNumber: log.weekNumber,
+    summary: log.summary,
+    weekStart: toIsoDateString(log.weekStart),
+    weekEnd: toIsoDateString(log.weekEnd),
+    updatedAt: log.updatedAt.toISOString(),
+    entries,
+  };
+}
+
+export async function GET(request: Request) {
   try {
     const session = await auth();
 
@@ -23,19 +50,63 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const weekNumberParam = searchParams.get("weekNumber");
+
+    if (weekNumberParam) {
+      const weekNumber = weekNumberQuerySchema.parse(weekNumberParam);
+      const log = await db.weeklyLog.findUnique({
+        where: {
+          userId_weekNumber: {
+            userId: session.user.id,
+            weekNumber,
+          },
+        },
+        include: {
+          entries: {
+            orderBy: { date: "asc" },
+          },
+        },
+      });
+
+      if (!log) {
+        return NextResponse.json(
+          { error: "Saved log not found" },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json(toWeeklyLogDetail(log));
+    }
+
     const logs = await db.weeklyLog.findMany({
       where: { userId: session.user.id },
-      include: {
-        entries: {
-          orderBy: { day: "asc" },
-        },
+      select: {
+        id: true,
+        weekNumber: true,
+        weekStart: true,
+        updatedAt: true,
       },
       orderBy: { weekNumber: "desc" },
     });
+    const historyItems: WeeklyLogHistoryItem[] = logs.map((log) => ({
+      id: log.id,
+      weekNumber: log.weekNumber,
+      weekStart: toIsoDateString(log.weekStart),
+      updatedAt: log.updatedAt.toISOString(),
+    }));
 
-    return NextResponse.json(logs);
+    return NextResponse.json(historyItems);
   } catch (error) {
     console.error("Error fetching logs:", error);
+
+    if (error instanceof Error && error.name === "ZodError") {
+      return NextResponse.json(
+        { error: "Invalid week number provided" },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -66,18 +137,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Calculate week dates
-    const startDate = new Date(profile.startDate);
-    const weekStart = new Date(startDate);
-    weekStart.setDate(weekStart.getDate() + (weekNumber - 1) * 7);
-    
-    // Adjust to Monday
-    const dayOfWeek = weekStart.getDay();
-    const daysToMonday = dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? 0 : 8 - dayOfWeek;
-    weekStart.setDate(weekStart.getDate() + daysToMonday);
-    
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekEnd.getDate() + 4);
+    const { weekStart, weekEnd } = getWeekDates(weekNumber, profile.startDate);
 
     // Check if log already exists
     const existingLog = await db.weeklyLog.findUnique({
@@ -126,10 +186,14 @@ export async function POST(request: Request) {
             })),
           },
         },
-        include: { entries: true },
+        include: {
+          entries: {
+            orderBy: { date: "asc" },
+          },
+        },
       });
 
-      return NextResponse.json(updatedLog);
+      return NextResponse.json(toWeeklyLogDetail(updatedLog));
     }
 
     // Create new log
@@ -148,10 +212,14 @@ export async function POST(request: Request) {
           })),
         },
       },
-      include: { entries: true },
+      include: {
+        entries: {
+          orderBy: { date: "asc" },
+        },
+      },
     });
 
-    return NextResponse.json(newLog, { status: 201 });
+    return NextResponse.json(toWeeklyLogDetail(newLog), { status: 201 });
   } catch (error) {
     console.error("Error saving logs:", error);
 

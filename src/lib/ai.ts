@@ -1,6 +1,14 @@
 import { createGroq } from "@ai-sdk/groq";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText } from "ai";
+import {
+  DailyLogEntry,
+  isWorkDay,
+  toIsoDateString,
+  WORK_DAYS,
+} from "@/lib/logbook";
+import { generatedLogsResponseSchema } from "@/lib/validations";
+import { getWorkWeekDates } from "@/lib/utils";
 
 // Initialize providers
 const groq = createGroq({
@@ -27,12 +35,6 @@ export interface StudentContext {
   weekEnd: Date;
 }
 
-export interface DailyLogEntry {
-  day: string;
-  date: string;
-  content: string;
-}
-
 export interface GeneratedLogs {
   entries: DailyLogEntry[];
 }
@@ -48,6 +50,9 @@ Guidelines:
 - Include realistic time references (morning, afternoon, etc.)
 - Mention relevant tools, technologies, or methodologies when appropriate
 - Make each day distinct but cohesive with the weekly theme
+- Stay very close to the student's weekly summary and role
+- Do not invent major tasks, meetings, tools, or achievements the student did not mention
+- If the summary is brief, expand the explanation and sequence of work without changing what was actually done
 - Do NOT use markdown formatting in the content - use plain text only
 
 You must respond with a valid JSON object containing an "entries" array with exactly 5 objects (one for each weekday).
@@ -66,6 +71,9 @@ function buildUserPrompt(context: StudentContext, summary: string): string {
     month: "long",
     day: "numeric",
   });
+  const expectedEntries = getWorkWeekDates(context.weekStart)
+    .map((date, index) => `- ${WORK_DAYS[index]}: ${toIsoDateString(date)}`)
+    .join("\n");
 
   return `
 Student Information:
@@ -77,6 +85,9 @@ Student Information:
 
 Weekly Summary:
 ${summary}
+
+Expected Days and Dates:
+${expectedEntries}
 
 Generate detailed daily log entries for this week. Return a JSON object with this exact structure:
 {
@@ -106,7 +117,7 @@ export async function generateWeeklyLogs(
       temperature: 0.7,
     });
 
-    return parseAIResponse(result.text);
+    return parseAIResponse(result.text, context);
   } catch (groqError) {
     console.error("Groq API failed, falling back to Gemini:", groqError);
 
@@ -120,7 +131,7 @@ export async function generateWeeklyLogs(
         temperature: 0.7,
       });
 
-      return parseAIResponse(result.text);
+      return parseAIResponse(result.text, context);
     } catch (geminiError) {
       console.error("Gemini API also failed:", geminiError);
       throw new Error("Failed to generate logs. Please try again later.");
@@ -128,30 +139,52 @@ export async function generateWeeklyLogs(
   }
 }
 
-function parseAIResponse(text: string): GeneratedLogs {
+function parseAIResponse(text: string, context: StudentContext): GeneratedLogs {
   // Try to extract JSON from the response
   const jsonMatch = text.match(/\{[\s\S]*"entries"[\s\S]*\}/);
-  
+
   if (!jsonMatch) {
     throw new Error("Invalid AI response format");
   }
 
   try {
-    const parsed = JSON.parse(jsonMatch[0]);
-    
-    if (!parsed.entries || !Array.isArray(parsed.entries) || parsed.entries.length !== 5) {
-      throw new Error("Invalid entries structure");
-    }
+    const parsed = generatedLogsResponseSchema.parse(JSON.parse(jsonMatch[0]));
+    const normalizedEntries = parsed.entries.map((entry) => ({
+      day: entry.day.trim().toUpperCase(),
+      date: entry.date,
+      content: entry.content.trim(),
+    }));
+    const entriesByDay = new Map<DailyLogEntry["day"], DailyLogEntry>();
 
-    // Validate each entry
-    const days = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"];
-    const validatedEntries: DailyLogEntry[] = parsed.entries.map(
-      (entry: DailyLogEntry, index: number) => ({
-        day: entry.day || days[index],
+    for (const entry of normalizedEntries) {
+      if (!isWorkDay(entry.day) || entriesByDay.has(entry.day)) {
+        throw new Error("Invalid day structure");
+      }
+
+      entriesByDay.set(entry.day, {
+        day: entry.day,
         date: entry.date,
         content: entry.content,
-      })
-    );
+      });
+    }
+
+    const expectedEntries = getWorkWeekDates(context.weekStart).map((date, index) => ({
+      day: WORK_DAYS[index],
+      date: toIsoDateString(date),
+    }));
+    const validatedEntries = expectedEntries.map(({ day, date }) => {
+      const entry = entriesByDay.get(day);
+
+      if (!entry || entry.date !== date) {
+        throw new Error("Generated dates do not match the selected week");
+      }
+
+      return {
+        day,
+        date,
+        content: entry.content,
+      };
+    });
 
     return { entries: validatedEntries };
   } catch {

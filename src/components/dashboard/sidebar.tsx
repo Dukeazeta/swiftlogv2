@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
   ChevronDown,
@@ -13,7 +13,6 @@ import {
   LogOut,
   Menu,
   X,
-  User,
   Calendar,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -56,10 +55,12 @@ interface SidebarProps {
 
 export function Sidebar({ user, profile, logs, needsOnboarding }: SidebarProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [schoolOpen, setSchoolOpen] = useState(false);
   const [companyOpen, setCompanyOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(true);
+  const selectedWeek = searchParams.get("week");
 
   const initials = user.name
     ?.split(" ")
@@ -227,7 +228,12 @@ export function Sidebar({ user, profile, logs, needsOnboarding }: SidebarProps) 
                       <Link
                         key={log.id}
                         href={`/dashboard?week=${log.weekNumber}`}
-                        className="flex items-center gap-2 pl-6 pr-2 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                        className={cn(
+                          "flex items-center gap-2 pl-6 pr-2 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded transition-colors",
+                          selectedWeek === String(log.weekNumber) &&
+                            "bg-gray-100 text-gray-900"
+                        )}
+                        onClick={() => setIsOpen(false)}
                       >
                         <span>Week {log.weekNumber}</span>
                         <span className="text-gray-400">

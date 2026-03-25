@@ -26,11 +26,6 @@ export function middleware(request: NextRequest) {
 
   const isAuthenticated = !!sessionToken;
 
-  // Redirect authenticated users away from login
-  if (isAuthenticated && pathname === "/login") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
   // Redirect unauthenticated users to login for protected routes
   if (!isAuthenticated && !isPublicRoute) {
     const loginUrl = new URL("/login", request.url);

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { getDashboardLayoutData } from "@/lib/data";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Button } from "@/components/ui/button";
@@ -18,19 +18,7 @@ export default async function DashboardLayout({
     }
 
     // Check if user has completed onboarding
-    const profile = await db.studentProfile.findUnique({
-      where: { userId: session.user.id },
-    });
-
-    // Get user's weekly logs for history
-    const logs = await db.weeklyLog.findMany({
-      where: { userId: session.user.id },
-      orderBy: { weekNumber: "desc" },
-      take: 20,
-    });
-
-    // If no profile and not on onboarding page, redirect to onboarding
-    const isOnboarding = false; // Will be set by the page
+    const { profile, logs } = await getDashboardLayoutData(session.user.id);
 
     return (
       <div className="flex h-screen bg-gray-50">

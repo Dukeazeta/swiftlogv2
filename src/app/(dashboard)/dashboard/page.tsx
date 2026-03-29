@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { DashboardEditor } from "@/components/dashboard/dashboard-editor";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { getStudentProfileByUserId } from "@/lib/data";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -10,19 +10,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const profile = await db.studentProfile.findUnique({
-    where: { userId: session.user.id },
-    select: {
-      fullName: true,
-      schoolName: true,
-      schoolDepartment: true,
-      companyName: true,
-      companyDepartment: true,
-      jobRole: true,
-      startDate: true,
-      endDate: true,
-    },
-  });
+  const profile = await getStudentProfileByUserId(session.user.id);
 
   if (!profile) {
     redirect("/onboarding");

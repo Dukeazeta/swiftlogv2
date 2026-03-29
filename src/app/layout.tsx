@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, DM_Serif_Display, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const jakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const dmSerif = DM_Serif_Display({
+  variable: "--font-dm-serif",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 const geistMono = Geist_Mono({
@@ -13,9 +20,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SwiftLogNG - AI-Powered SIWES Logbook",
+  title: "SwiftLogNG — AI-powered SIWES logbook",
   description:
-    "AI-powered logbook assistant for IT/SIWES students across Nigeria. Generate professional daily logs from weekly summaries.",
+    "Drop a quick summary of your week and let AI write professional daily logbook entries — tailored to your role, company, and department.",
   keywords: ["SIWES", "IT", "logbook", "Nigeria", "students", "AI"],
 };
 
@@ -28,7 +35,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         suppressHydrationWarning
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${jakartaSans.variable} ${dmSerif.variable} ${geistMono.variable} antialiased`}
       >
         {children}
       </body>

@@ -1,6 +1,9 @@
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
+import {
+  getStudentProfileByUserId,
+  upsertStudentProfile,
+} from "@/lib/data";
 import { onboardingSchema } from "@/lib/validations";
 
 export async function GET() {
@@ -11,9 +14,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const profile = await db.studentProfile.findUnique({
-      where: { userId: session.user.id },
-    });
+    const profile = await getStudentProfileByUserId(session.user.id);
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
@@ -40,29 +41,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const validatedData = onboardingSchema.parse(body);
 
-    // Check if profile already exists
-    const existingProfile = await db.studentProfile.findUnique({
-      where: { userId: session.user.id },
-    });
+    const existingProfile = await getStudentProfileByUserId(session.user.id);
+    const profile = await upsertStudentProfile(session.user.id, validatedData);
 
-    if (existingProfile) {
-      // Update existing profile
-      const updatedProfile = await db.studentProfile.update({
-        where: { userId: session.user.id },
-        data: validatedData,
-      });
-      return NextResponse.json(updatedProfile);
-    }
-
-    // Create new profile
-    const profile = await db.studentProfile.create({
-      data: {
-        userId: session.user.id,
-        ...validatedData,
-      },
-    });
-
-    return NextResponse.json(profile, { status: 201 });
+    return NextResponse.json(profile, { status: existingProfile ? 200 : 201 });
   } catch (error) {
     console.error("Error creating profile:", error);
     

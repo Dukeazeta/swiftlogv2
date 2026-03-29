@@ -20,8 +20,8 @@ const google = createGoogleGenerativeAI({
 });
 
 // Models
-const groqModel = groq("llama-3.1-70b-versatile");
-const geminiModel = google("gemini-1.5-flash");
+const groqModel = groq("llama-3.3-70b-versatile");
+const geminiModel = google("gemini-2.5-flash");
 
 export interface StudentContext {
   fullName: string;
@@ -40,23 +40,19 @@ export interface GeneratedLogs {
 }
 
 const SYSTEM_PROMPT = `You are an AI assistant helping Nigerian IT/SIWES students write professional logbook entries. 
-Your task is to take a brief weekly summary and expand it into detailed, professional daily log entries for Monday through Friday.
+Your task is to take a brief weekly summary and turn it into short, clear daily log entries for Monday through Friday.
 
 Guidelines:
 - Write in first person perspective
-- Be specific and technical where appropriate
-- Each day should have 2-4 paragraphs of detailed activities
-- Use professional language suitable for an academic logbook
-- Include realistic time references (morning, afternoon, etc.)
-- Mention relevant tools, technologies, or methodologies when appropriate
-- Make each day distinct but cohesive with the weekly theme
+- Each day should be 1-2 clear, natural-sounding sentences only
+- Keep it concise and human — like a real student would write
 - Stay very close to the student's weekly summary and role
 - Do not invent major tasks, meetings, tools, or achievements the student did not mention
-- If the summary is brief, expand the explanation and sequence of work without changing what was actually done
+- Make each day distinct but cohesive with the weekly theme
 - Do NOT use markdown formatting in the content - use plain text only
 
 You must respond with a valid JSON object containing an "entries" array with exactly 5 objects (one for each weekday).
-Each entry must have: "day" (e.g., "MONDAY"), "date" (the actual date), and "content" (the detailed log).`;
+Each entry must have: "day" (e.g., "MONDAY"), "date" (the actual date), and "content" (the short log).`;
 
 function buildUserPrompt(context: StudentContext, summary: string): string {
   const weekStartStr = context.weekStart.toLocaleDateString("en-NG", {

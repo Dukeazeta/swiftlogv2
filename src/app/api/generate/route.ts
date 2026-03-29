@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { generateWeeklyLogs, type StudentContext } from "@/lib/ai";
+import { getUserWithProfile, updateUserUsage } from "@/lib/data";
 import { generateLogSchema } from "@/lib/validations";
 import { getWeekDates, hasExceededUsageLimit } from "@/lib/utils";
 
@@ -14,10 +14,7 @@ export async function POST(request: Request) {
     }
 
     // Get user with profile
-    const user = await db.user.findUnique({
-      where: { id: session.user.id },
-      include: { profile: true },
-    });
+    const user = await getUserWithProfile(session.user.id);
 
     if (!user?.profile) {
       return NextResponse.json(
@@ -69,13 +66,11 @@ export async function POST(request: Request) {
       now.getMonth() !== usageResetAt.getMonth() ||
       now.getFullYear() !== usageResetAt.getFullYear();
 
-    await db.user.update({
-      where: { id: user.id },
-      data: {
-        usageCount: isNewMonth ? 1 : user.usageCount + 1,
-        usageResetAt: isNewMonth ? now : user.usageResetAt,
-      },
-    });
+    await updateUserUsage(
+      user.id,
+      isNewMonth ? 1 : user.usageCount + 1,
+      isNewMonth ? now : user.usageResetAt
+    );
 
     return NextResponse.json(generatedLogs);
   } catch (error) {

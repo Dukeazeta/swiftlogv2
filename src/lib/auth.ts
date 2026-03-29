@@ -1,10 +1,17 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import { PrismaAdapter } from "@auth/prisma-adapter";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import { db } from "@/lib/db";
+import { accounts, sessions, users, verificationTokens } from "@/lib/schema";
+import { eq } from "drizzle-orm";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(db),
+  adapter: DrizzleAdapter(db, {
+    usersTable: users,
+    accountsTable: accounts,
+    sessionsTable: sessions,
+    verificationTokensTable: verificationTokens,
+  }),
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
@@ -13,6 +20,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   pages: {
     signIn: "/login",
+    error: "/login",
   },
   trustHost: true,
   callbacks: {
@@ -32,14 +40,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   events: {
     async createUser({ user }) {
+      if (!user.id) {
+        return;
+      }
+
       // Initialize usage tracking for new users
-      await db.user.update({
-        where: { id: user.id },
-        data: {
+      await db
+        .update(users)
+        .set({
           usageResetAt: new Date(),
           usageCount: 0,
-        },
-      });
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, user.id))
+        .run();
     },
   },
 });

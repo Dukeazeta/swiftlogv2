@@ -8,7 +8,25 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export default function LoginPage() {
+const errorMessages: Record<string, string> = {
+  AccessDenied: "Google sign-in was denied. Please try again.",
+  CallbackRouteError:
+    "We could not finish Google sign-in. Please check your connection and try again.",
+  Configuration:
+    "Google sign-in could not reach the provider. Please check your internet or DNS and try again.",
+  Default: "Sign-in failed. Please try again.",
+};
+
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ error?: string }>;
+}) {
+  const params = await searchParams;
+  const errorCode = params?.error;
+  const errorMessage =
+    (errorCode && errorMessages[errorCode]) || (errorCode ? errorMessages.Default : null);
+
   return (
     <Card className="w-full shadow-lg">
       <CardHeader className="space-y-1 text-center">
@@ -23,6 +41,12 @@ export default function LoginPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {errorMessage && (
+          <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {errorMessage}
+          </div>
+        )}
+
         <form
           action={async () => {
             "use server";

@@ -1,12 +1,13 @@
-import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 import { generateWeeklyLogs, type StudentContext } from "@/lib/ai";
-import { getUserWithProfile, updateUserUsage } from "@/lib/data";
 import { generateLogSchema } from "@/lib/validations";
 import { getWeekDates, hasExceededUsageLimit } from "@/lib/utils";
 
 export async function POST(request: Request) {
   try {
+    const { auth } = await import("@/lib/auth");
+    const { getUserWithProfile, updateUserUsage } = await import("@/lib/data");
+
     const session = await auth();
 
     if (!session?.user?.id) {

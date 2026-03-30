@@ -101,130 +101,134 @@ const DAY_CARDS = [
 export default function HomePage() {
   return (
     <div className="min-h-[100dvh] bg-background font-sans overflow-x-hidden">
-      {/* ─── Floating Pill Navbar (sticky) ─── */}
-      <header className="sticky top-0 z-50 w-full pt-4 pb-2 px-4">
-        <nav className="max-w-[820px] mx-auto flex items-center justify-between bg-white/80 backdrop-blur-xl rounded-full px-5 py-2.5 shadow-warm ring-1 ring-stone-200/40">
-          <Link href="/" className="flex items-center gap-2 group">
-            <LogoMark />
-            <span className="font-semibold text-[15px] tracking-tight text-stone-800">
-              SwiftLog<span className="text-stone-400 font-normal">NG</span>
-            </span>
-          </Link>
+      {/* ─── Hero region ─── */}
+      <div className="relative">
 
-          <div className="hidden md:flex items-center gap-7">
-            <a
-              href="#how-it-works"
-              className="text-[13px] font-medium text-stone-400 hover:text-stone-700 transition-colors duration-300"
-            >
-              How it works
-            </a>
-            <a
-              href="#features"
-              className="text-[13px] font-medium text-stone-400 hover:text-stone-700 transition-colors duration-300"
-            >
-              Features
-            </a>
-          </div>
+        {/* ─── Floating Pill Navbar (sticky) ─── */}
+        <header className="sticky top-0 z-50 w-full pt-4 pb-2 px-4 relative">
+          <nav className="max-w-[820px] mx-auto flex items-center justify-between bg-white/80 backdrop-blur-xl rounded-full px-5 py-2.5 shadow-warm ring-1 ring-stone-200/40">
+            <Link href="/" className="flex items-center gap-2 group">
+              <LogoMark />
+              <span className="font-semibold text-[15px] tracking-tight text-stone-800">
+                SwiftLog<span className="text-stone-400 font-normal">NG</span>
+              </span>
+            </Link>
 
-          <Link
-            href="/login"
-            className="group inline-flex items-center gap-1.5 bg-stone-800 text-white rounded-full px-4 py-2 text-[13px] font-medium hover:bg-stone-700 active:scale-[0.97] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
-          >
-            Get started
-            <span className="w-[18px] h-[18px] rounded-full bg-white/15 flex items-center justify-center group-hover:translate-x-0.5 group-hover:-translate-y-[1px] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]">
-              <ArrowUpRight size={10} />
-            </span>
-          </Link>
-        </nav>
-      </header>
-
-      {/* ─── Hero ─── */}
-      <section className="pt-16 pb-24 md:pt-24 md:pb-32 lg:pt-32 lg:pb-40">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-            {/* ─ Left: Copy ─ */}
-            <div className="flex flex-col pt-4 lg:pt-8">
-              {/* Headline */}
-              <h1
-                className="animate-fade-up font-display text-[clamp(2.5rem,5.5vw,4.5rem)] leading-[1.06] tracking-tight text-stone-900 mb-6"
+            <div className="hidden md:flex items-center gap-7">
+              <a
+                href="#how-it-works"
+                className="text-[13px] font-medium text-stone-400 hover:text-stone-700 transition-colors duration-300"
               >
-                Your logbook, sorted
-                <br />
-                <span className="text-stone-400">before Monday morning.</span>
-              </h1>
-
-              {/* Subtitle */}
-              <p
-                className="animate-fade-up [animation-delay:120ms] text-[15px] md:text-base text-stone-500 leading-relaxed max-w-[46ch] mb-10"
+                How it works
+              </a>
+              <a
+                href="#features"
+                className="text-[13px] font-medium text-stone-400 hover:text-stone-700 transition-colors duration-300"
               >
-                Drop a quick summary of your week and let AI write your daily
-                entries — tailored to your role, company, and department.
-              </p>
+                Features
+              </a>
+            </div>
 
-              {/* CTA group */}
-              <div className="animate-fade-up [animation-delay:240ms] flex flex-col sm:flex-row items-start sm:items-center gap-5">
-                <Link
-                  href="/login"
-                  className="group inline-flex items-center gap-3 bg-stone-800 text-white rounded-full px-7 py-3.5 text-sm font-medium hover:bg-stone-700 active:scale-[0.97] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
+            <Link
+              href="/login"
+              className="group inline-flex items-center gap-1.5 bg-stone-800 text-white rounded-full px-4 py-2 text-[13px] font-medium hover:bg-stone-700 active:scale-[0.97] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
+            >
+              Get started
+              <span className="w-[18px] h-[18px] rounded-full bg-white/15 flex items-center justify-center group-hover:translate-x-0.5 group-hover:-translate-y-[1px] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]">
+                <ArrowUpRight size={10} />
+              </span>
+            </Link>
+          </nav>
+        </header>
+
+        {/* ─── Hero ─── */}
+        <section className="relative pt-16 pb-24 md:pt-24 md:pb-32 lg:pt-32 lg:pb-40">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
+              {/* ─ Left: Copy ─ */}
+              <div className="flex flex-col pt-4 lg:pt-8">
+                {/* Headline */}
+                <h1
+                  className="animate-fade-up font-display font-medium text-[clamp(2.5rem,5.5vw,4.5rem)] leading-[1.06] tracking-tight text-stone-900 mb-6"
                 >
-                  Start writing
-                  <span className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center group-hover:translate-x-0.5 group-hover:-translate-y-[1px] group-hover:scale-105 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]">
-                    <ArrowUpRight size={13} />
+                  Your logbook, sorted
+                  <br />
+                  <span className="text-stone-400">before Monday morning.</span>
+                </h1>
+
+                {/* Subtitle */}
+                <p
+                  className="animate-fade-up [animation-delay:120ms] text-[15px] md:text-base text-stone-500 leading-relaxed max-w-[46ch] mb-10"
+                >
+                  Drop a quick summary of your week and let AI write your daily
+                  entries — tailored to your role, company, and department.
+                </p>
+
+                {/* CTA group */}
+                <div className="animate-fade-up [animation-delay:240ms] flex flex-col sm:flex-row items-start sm:items-center gap-5">
+                  <Link
+                    href="/login"
+                    className="group inline-flex items-center gap-3 bg-stone-800 text-white rounded-full px-7 py-3.5 text-sm font-medium hover:bg-stone-700 active:scale-[0.97] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
+                  >
+                    Start writing
+                    <span className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center group-hover:translate-x-0.5 group-hover:-translate-y-[1px] group-hover:scale-105 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]">
+                      <ArrowUpRight size={13} />
+                    </span>
+                  </Link>
+                  <span className="text-[13px] text-stone-400 flex items-center gap-1.5">
+                    <CheckIcon />
+                    Free to use · No credit card
                   </span>
-                </Link>
-                <span className="text-[13px] text-stone-400 flex items-center gap-1.5">
-                  <CheckIcon />
-                  Free to use · No credit card
-                </span>
+                </div>
+              </div>
+
+              {/* ─ Right: Floating day cards ─ */}
+              <div className="relative min-h-[420px] hidden lg:block">
+                {DAY_CARDS.map((card) => (
+                  <div
+                    key={card.day}
+                    className={`absolute w-[280px] animate-fade-up ${card.delay} ${card.position} ${card.rotate} hover:rotate-0 hover:scale-[1.03] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] cursor-default`}
+                  >
+                    <div className={`rounded-2xl ${card.accent} border p-4 shadow-warm`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`w-2 h-2 rounded-full ${card.dot}`} />
+                        <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-[0.1em]">
+                          {card.day}
+                        </span>
+                      </div>
+                      <p className="text-[13px] text-stone-600 leading-relaxed">
+                        {card.content}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* ─ Mobile: Stacked day cards ─ */}
+              <div className="flex flex-col gap-3 lg:hidden">
+                {DAY_CARDS.slice(0, 3).map((card) => (
+                  <div
+                    key={card.day}
+                    className={`animate-fade-up ${card.delay}`}
+                  >
+                    <div className={`rounded-2xl ${card.accent} border p-4 shadow-warm`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={`w-2 h-2 rounded-full ${card.dot}`} />
+                        <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-[0.1em]">
+                          {card.day}
+                        </span>
+                      </div>
+                      <p className="text-[13px] text-stone-600 leading-relaxed">
+                        {card.content}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-
-            {/* ─ Right: Floating day cards ─ */}
-            <div className="relative min-h-[420px] hidden lg:block">
-              {DAY_CARDS.map((card) => (
-                <div
-                  key={card.day}
-                  className={`absolute w-[280px] animate-fade-up ${card.delay} ${card.position} ${card.rotate} hover:rotate-0 hover:scale-[1.03] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] cursor-default`}
-                >
-                  <div className={`rounded-2xl ${card.accent} border p-4 shadow-warm`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`w-2 h-2 rounded-full ${card.dot}`} />
-                      <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-[0.1em]">
-                        {card.day}
-                      </span>
-                    </div>
-                    <p className="text-[13px] text-stone-600 leading-relaxed">
-                      {card.content}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* ─ Mobile: Stacked day cards ─ */}
-            <div className="flex flex-col gap-3 lg:hidden">
-              {DAY_CARDS.slice(0, 3).map((card) => (
-                <div
-                  key={card.day}
-                  className={`animate-fade-up ${card.delay}`}
-                >
-                  <div className={`rounded-2xl ${card.accent} border p-4 shadow-warm`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`w-2 h-2 rounded-full ${card.dot}`} />
-                      <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-[0.1em]">
-                        {card.day}
-                      </span>
-                    </div>
-                    <p className="text-[13px] text-stone-600 leading-relaxed">
-                      {card.content}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }

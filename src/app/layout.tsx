@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, DM_Serif_Display, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Outfit, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 const jakartaSans = Plus_Jakarta_Sans({
@@ -8,10 +8,10 @@ const jakartaSans = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
-const dmSerif = DM_Serif_Display({
-  variable: "--font-dm-serif",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
-  weight: "400",
+  weight: ["400", "500", "600", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -35,7 +35,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         suppressHydrationWarning
-        className={`${jakartaSans.variable} ${dmSerif.variable} ${geistMono.variable} antialiased`}
+        className={`${jakartaSans.variable} ${outfit.variable} ${geistMono.variable} antialiased`}
       >
         {children}
       </body>

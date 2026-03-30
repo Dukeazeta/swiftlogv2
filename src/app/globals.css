@@ -25,7 +25,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans: var(--font-jakarta);
-  --font-display: var(--font-dm-serif);
+  --font-display: var(--font-outfit);
   --font-mono: var(--font-geist-mono);
   --shadow-warm: 0 4px 32px -4px rgba(28, 25, 23, 0.06);
   --shadow-warm-lg: 0 12px 48px -8px rgba(28, 25, 23, 0.10);

@@ -97,6 +97,11 @@ const DAY_CARDS = [
     dot: "bg-rose-300",
   },
 ];
+const SCHOOLS = [
+  "UNILAG", "OAU", "FUTA", "UI", "LASU", "ABUAD",
+  "Covenant", "UNN", "UNIBEN", "UNILORIN", "FUPRE", "LAUTECH",
+  "Babcock", "UNIPORT", "ABU Zaria", "FUNAAB",
+];
 
 export default function HomePage() {
   return (
@@ -104,26 +109,26 @@ export default function HomePage() {
       {/* ─── Hero region ─── */}
       <div className="relative">
 
-        {/* ─── Floating Pill Navbar (sticky) ─── */}
-        <header className="sticky top-0 z-50 w-full pt-4 pb-2 px-4 relative">
-          <nav className="max-w-[820px] mx-auto flex items-center justify-between bg-white/80 backdrop-blur-xl rounded-full px-5 py-2.5 shadow-warm ring-1 ring-stone-200/40">
-            <Link href="/" className="flex items-center gap-2 group">
+        {/* ─── Floating Liquid Glass Navbar (sticky) ─── */}
+        <header className="sticky top-0 z-50 w-full pt-4 pb-2 px-4">
+          <nav className="liquid-glass max-w-[820px] mx-auto flex items-center justify-between rounded-full px-5 py-2.5">
+            <Link href="/" className="flex items-center gap-2 group relative z-10">
               <LogoMark />
               <span className="font-semibold text-[15px] tracking-tight text-stone-800">
                 SwiftLog<span className="text-stone-400 font-normal">NG</span>
               </span>
             </Link>
 
-            <div className="hidden md:flex items-center gap-7">
+            <div className="hidden md:flex items-center gap-7 relative z-10">
               <a
                 href="#how-it-works"
-                className="text-[13px] font-medium text-stone-400 hover:text-stone-700 transition-colors duration-300"
+                className="text-[13px] font-medium text-stone-500 hover:text-stone-800 transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
               >
                 How it works
               </a>
               <a
                 href="#features"
-                className="text-[13px] font-medium text-stone-400 hover:text-stone-700 transition-colors duration-300"
+                className="text-[13px] font-medium text-stone-500 hover:text-stone-800 transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
               >
                 Features
               </a>
@@ -131,7 +136,7 @@ export default function HomePage() {
 
             <Link
               href="/login"
-              className="group inline-flex items-center gap-1.5 bg-stone-800 text-white rounded-full px-4 py-2 text-[13px] font-medium hover:bg-stone-700 active:scale-[0.97] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
+              className="group inline-flex items-center gap-1.5 bg-stone-800 text-white rounded-full px-4 py-2 text-[13px] font-medium hover:bg-stone-700 active:scale-[0.97] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] relative z-10"
             >
               Get started
               <span className="w-[18px] h-[18px] rounded-full bg-white/15 flex items-center justify-center group-hover:translate-x-0.5 group-hover:-translate-y-[1px] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]">
@@ -229,6 +234,34 @@ export default function HomePage() {
           </div>
         </section>
       </div>
+
+      {/* ─── Trusted by students from ─── */}
+      <section className="py-20 md:py-28">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-10 mb-10">
+          <p className="text-center text-[11px] font-medium text-stone-400 uppercase tracking-[0.2em]">
+            Trusted by students from
+          </p>
+        </div>
+
+        {/* Marquee container */}
+        <div className="relative overflow-hidden">
+          {/* Fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-32 md:w-48 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-32 md:w-48 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+
+          {/* Scrolling track — duplicated for seamless loop */}
+          <div className="marquee-track flex items-center gap-5 md:gap-6 w-max">
+            {[...SCHOOLS, ...SCHOOLS].map((school, i) => (
+              <span
+                key={`${school}-${i}`}
+                className="inline-flex items-center rounded-full px-5 py-2 bg-stone-100/70 border border-stone-200/50 text-stone-400 text-[13px] md:text-sm font-medium tracking-tight whitespace-nowrap select-none shadow-[0_1px_2px_rgba(28,25,23,0.04)]"
+              >
+                {school}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

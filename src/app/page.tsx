@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ScrollCarousel } from "@/components/scroll-carousel";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"] as const;
 
@@ -9,6 +10,21 @@ const LOG_PREVIEWS = [
   "Wrote unit tests for the new module and updated docs.",
   "Deployed staging build and wrapped up weekly report.",
 ];
+
+const SCHOOLS = [
+  "FUPRE", "UNILAG", "OAU", "FUTA", "UI", "LASU",
+  "ABUAD", "Covenant", "UNN", "UNIBEN", "UNILORIN",
+  "LAUTECH", "Babcock", "UNIPORT", "ABU", "FUNAAB",
+  "DELSU", "UNICAL", "EKSU", "CRUTECH",
+];
+
+function SchoolPill({ name }: { name: string }) {
+  return (
+    <span className="inline-block font-display font-extrabold text-[clamp(1.75rem,4vw,2.75rem)] leading-none tracking-[-0.03em] text-expo-black/[0.08] select-none whitespace-nowrap uppercase">
+      {name}
+    </span>
+  );
+}
 
 export default function HomePage() {
   return (
@@ -110,6 +126,28 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ═══════ TRUSTED BY — scroll-linked carousel ═══════ */}
+      <section className="py-20 sm:py-28 space-y-8">
+        <p className="text-center text-[11px] font-semibold text-silver uppercase tracking-[0.1em]">
+          Trusted by students from
+        </p>
+
+        {/* Row 1 — moves left on scroll-down */}
+        <ScrollCarousel speed={0.4}>
+          {[...SCHOOLS, ...SCHOOLS, ...SCHOOLS].map((school, i) => (
+            <SchoolPill key={`r1-${i}`} name={school} />
+          ))}
+        </ScrollCarousel>
+
+        {/* Row 2 — moves right on scroll-down (negative speed) */}
+        <ScrollCarousel speed={-0.3}>
+          {[...SCHOOLS.slice().reverse(), ...SCHOOLS.slice().reverse(), ...SCHOOLS.slice().reverse()].map((school, i) => (
+            <SchoolPill key={`r2-${i}`} name={school} />
+          ))}
+        </ScrollCarousel>
+      </section>
     </div>
   );
 }
+

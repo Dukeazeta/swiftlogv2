@@ -1,6 +1,12 @@
+import { createMistral } from "@ai-sdk/mistral";
 import { createGroq } from "@ai-sdk/groq";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateText } from "ai";
+import {
+  AI_PROVIDER_LABELS,
+  AI_PROVIDER_IDS,
+  type AiProviderId,
+} from "@/lib/ai-providers";
 import {
   DailyLogEntry,
   isWorkDay,
@@ -9,19 +15,6 @@ import {
 } from "@/lib/logbook";
 import { generatedLogsResponseSchema } from "@/lib/validations";
 import { getWorkWeekDates } from "@/lib/utils";
-
-// Initialize providers
-const groq = createGroq({
-  apiKey: process.env.GROQ_API_KEY,
-});
-
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-});
-
-// Models
-const groqModel = groq("llama-3.3-70b-versatile");
-const geminiModel = google("gemini-2.5-flash");
 
 export interface StudentContext {
   fullName: string;
@@ -37,6 +30,23 @@ export interface StudentContext {
 
 export interface GeneratedLogs {
   entries: DailyLogEntry[];
+}
+
+export type AiProviderErrorCode =
+  | "no_available_providers"
+  | "provider_not_configured"
+  | "provider_generation_failed";
+
+export class AiProviderError extends Error {
+  constructor(
+    message: string,
+    public code: AiProviderErrorCode,
+    public provider: AiProviderId | null,
+    public availableProviders: AiProviderId[]
+  ) {
+    super(message);
+    this.name = "AiProviderError";
+  }
 }
 
 const SYSTEM_PROMPT = `You are an AI assistant helping Nigerian IT/SIWES students write professional logbook entries. 
@@ -97,16 +107,73 @@ Generate detailed daily log entries for this week. Return a JSON object with thi
 }`;
 }
 
+function hasApiKey(provider: AiProviderId): boolean {
+  switch (provider) {
+    case "mistral":
+      return Boolean(process.env.MISTRAL_API_KEY);
+    case "groq":
+      return Boolean(process.env.GROQ_API_KEY);
+    case "gemini":
+      return Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY);
+  }
+}
+
+export function getConfiguredAiProviders(): AiProviderId[] {
+  return AI_PROVIDER_IDS.filter((provider) => hasApiKey(provider));
+}
+
+export function getDefaultAiProvider(
+  availableProviders = getConfiguredAiProviders()
+): AiProviderId | null {
+  return availableProviders[0] ?? null;
+}
+
+function getModel(provider: AiProviderId) {
+  switch (provider) {
+    case "mistral":
+      return createMistral({
+        apiKey: process.env.MISTRAL_API_KEY,
+      })("mistral-small-latest");
+    case "groq":
+      return createGroq({
+        apiKey: process.env.GROQ_API_KEY,
+      })("llama-3.3-70b-versatile");
+    case "gemini":
+      return createGoogleGenerativeAI({
+        apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+      })("gemini-2.5-flash");
+  }
+}
+
 export async function generateWeeklyLogs(
   context: StudentContext,
-  summary: string
+  summary: string,
+  provider: AiProviderId
 ): Promise<GeneratedLogs> {
   const userPrompt = buildUserPrompt(context, summary);
+  const availableProviders = getConfiguredAiProviders();
+
+  if (availableProviders.length === 0) {
+    throw new AiProviderError(
+      "No AI provider is connected yet. Add an API key first.",
+      "no_available_providers",
+      null,
+      []
+    );
+  }
+
+  if (!availableProviders.includes(provider)) {
+    throw new AiProviderError(
+      `${AI_PROVIDER_LABELS[provider]} is not available right now.`,
+      "provider_not_configured",
+      provider,
+      availableProviders
+    );
+  }
 
   try {
-    // Try Groq first
     const result = await generateText({
-      model: groqModel,
+      model: getModel(provider),
       system: SYSTEM_PROMPT,
       prompt: userPrompt,
       maxTokens: 4000,
@@ -114,24 +181,14 @@ export async function generateWeeklyLogs(
     });
 
     return parseAIResponse(result.text, context);
-  } catch (groqError) {
-    console.error("Groq API failed, falling back to Gemini:", groqError);
-
-    try {
-      // Fallback to Gemini
-      const result = await generateText({
-        model: geminiModel,
-        system: SYSTEM_PROMPT,
-        prompt: userPrompt,
-        maxTokens: 4000,
-        temperature: 0.7,
-      });
-
-      return parseAIResponse(result.text, context);
-    } catch (geminiError) {
-      console.error("Gemini API also failed:", geminiError);
-      throw new Error("Failed to generate logs. Please try again later.");
-    }
+  } catch (error) {
+    console.error(`${AI_PROVIDER_LABELS[provider]} generation failed:`, error);
+    throw new AiProviderError(
+      `${AI_PROVIDER_LABELS[provider]} could not generate your draft right now.`,
+      "provider_generation_failed",
+      provider,
+      availableProviders
+    );
   }
 }
 

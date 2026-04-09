@@ -21,7 +21,7 @@ export default async function DashboardLayout({
     const { profile, logs } = await getDashboardLayoutData(session.user.id);
 
     return (
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen bg-cloud-gray">
         <Sidebar
           user={session.user}
           profile={profile}
@@ -35,7 +35,7 @@ export default async function DashboardLayout({
     console.error("Dashboard layout failed to initialize:", error);
 
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+      <main className="min-h-screen bg-cloud-gray flex items-center justify-center p-6">
         <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <h1 className="text-xl font-semibold text-gray-900">
             Database connection unavailable

@@ -8,6 +8,7 @@ import {
   text,
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
+import { type AiProviderId } from "@/lib/ai-providers";
 
 export const users = sqliteTable(
   "users",
@@ -104,6 +105,7 @@ export const studentProfiles = sqliteTable(
     companyName: text("company_name").notNull(),
     companyDepartment: text("company_department").notNull(),
     jobRole: text("job_role").notNull(),
+    preferredAiProvider: text("preferred_ai_provider").$type<AiProviderId | null>(),
     startDate: integer("start_date", { mode: "timestamp_ms" }).notNull(),
     endDate: integer("end_date", { mode: "timestamp_ms" }).notNull(),
     isOnboarded: integer("is_onboarded", { mode: "boolean" })

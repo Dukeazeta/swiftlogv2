@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { DashboardEditor } from "@/components/dashboard/dashboard-editor";
+import { getConfiguredAiProviders } from "@/lib/ai";
 import { auth } from "@/lib/auth";
 import { getStudentProfileByUserId } from "@/lib/data";
 
@@ -11,6 +12,7 @@ export default async function DashboardPage() {
   }
 
   const profile = await getStudentProfileByUserId(session.user.id);
+  const availableProviders = getConfiguredAiProviders();
 
   if (!profile) {
     redirect("/onboarding");
@@ -23,6 +25,7 @@ export default async function DashboardPage() {
         startDate: profile.startDate.toISOString(),
         endDate: profile.endDate.toISOString(),
       }}
+      availableProviders={availableProviders}
     />
   );
 }

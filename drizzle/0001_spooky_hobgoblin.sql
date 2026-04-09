@@ -1,0 +1,1 @@
+ALTER TABLE `student_profiles` ADD `preferred_ai_provider` text;

@@ -1,264 +1,112 @@
 import Link from "next/link";
 
-function LogoMark() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="32" height="32" rx="9" fill="#292524" />
-      <path
-        d="M9 10.5C9 9.67 9.67 9 10.5 9H18.5C19.33 9 20 9.67 20 10.5V22.5C20 23.33 19.33 24 18.5 24H10.5C9.67 24 9 23.33 9 22.5V10.5Z"
-        fill="#FAF7F2"
-        fillOpacity="0.9"
-      />
-      <path d="M12 13H17" stroke="#292524" strokeWidth="1.2" strokeLinecap="round" />
-      <path d="M12 15.5H16" stroke="#292524" strokeWidth="1.2" strokeLinecap="round" />
-      <path d="M12 18H15" stroke="#292524" strokeWidth="1.2" strokeLinecap="round" />
-      <path
-        d="M21 12L23.5 14.5L21 17"
-        stroke="#FAF7F2"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity="0.7"
-      />
-    </svg>
-  );
-}
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"] as const;
 
-function ArrowUpRight({ size = 14 }: { size?: number }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M4.5 11.5L11.5 4.5" />
-      <path d="M5 4.5H11.5V11" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3.5 8.5L6.5 11.5L12.5 4.5" />
-    </svg>
-  );
-}
-
-const DAY_CARDS = [
-  {
-    day: "Monday",
-    content: "Resumed work and had a brief sync with my supervisor about this week's priorities.",
-    position: "top-0 left-0 md:left-2",
-    rotate: "-rotate-2",
-    delay: "[animation-delay:0.4s]",
-    accent: "bg-amber-50 border-amber-100",
-    dot: "bg-amber-300",
-  },
-  {
-    day: "Tuesday",
-    content: "Worked on the payment gateway API integration and resolved a CORS issue on staging.",
-    position: "top-22 right-0 md:right-0",
-    rotate: "rotate-2",
-    delay: "[animation-delay:0.6s]",
-    accent: "bg-emerald-50 border-emerald-100",
-    dot: "bg-emerald-300",
-  },
-  {
-    day: "Wednesday",
-    content: "Attended the team standup and presented progress. Fixed two bugs reported by QA.",
-    position: "top-44 left-2 md:left-6",
-    rotate: "-rotate-1",
-    delay: "[animation-delay:0.8s]",
-    accent: "bg-sky-50 border-sky-100",
-    dot: "bg-sky-300",
-  },
-  {
-    day: "Thursday",
-    content: "Started writing unit tests for the new module and updated the project documentation.",
-    position: "top-[16.5rem] right-0 md:right-4",
-    rotate: "rotate-1",
-    delay: "[animation-delay:1s]",
-    accent: "bg-violet-50 border-violet-100",
-    dot: "bg-violet-300",
-  },
-  {
-    day: "Friday",
-    content: "Deployed the staging build and ran final checks. Wrapped up the week's progress report.",
-    position: "top-[21.5rem] left-0 md:left-2",
-    rotate: "rotate-2",
-    delay: "[animation-delay:1.2s]",
-    accent: "bg-rose-50 border-rose-100",
-    dot: "bg-rose-300",
-  },
-];
-const SCHOOLS = [
-  "UNILAG", "OAU", "FUTA", "UI", "LASU", "ABUAD",
-  "Covenant", "UNN", "UNIBEN", "UNILORIN", "FUPRE", "LAUTECH",
-  "Babcock", "UNIPORT", "ABU Zaria", "FUNAAB",
+const LOG_PREVIEWS = [
+  "Resumed work and synced with supervisor on weekly priorities.",
+  "Integrated payment gateway API and resolved CORS issue.",
+  "Attended standup, presented progress, and fixed two bugs.",
+  "Wrote unit tests for the new module and updated docs.",
+  "Deployed staging build and wrapped up weekly report.",
 ];
 
 export default function HomePage() {
   return (
-    <div className="min-h-[100dvh] bg-background font-sans overflow-x-hidden">
-      {/* ─── Hero region ─── */}
-      <div className="relative">
-
-        {/* ─── Floating Liquid Glass Navbar (sticky) ─── */}
-        <header className="sticky top-0 z-50 w-full pt-4 pb-2 px-4">
-          <nav className="liquid-glass max-w-[820px] mx-auto flex items-center justify-between rounded-full px-5 py-2.5">
-            <Link href="/" className="flex items-center gap-2 group relative z-10">
-              <LogoMark />
-              <span className="font-semibold text-[15px] tracking-tight text-stone-800">
-                SwiftLog<span className="text-stone-400 font-normal">NG</span>
-              </span>
-            </Link>
-
-            <div className="hidden md:flex items-center gap-7 relative z-10">
-              <a
-                href="#how-it-works"
-                className="text-[13px] font-medium text-stone-500 hover:text-stone-800 transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
-              >
-                How it works
-              </a>
-              <a
-                href="#features"
-                className="text-[13px] font-medium text-stone-500 hover:text-stone-800 transition-colors duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
-              >
-                Features
-              </a>
-            </div>
-
+    <div className="bg-cloud-gray font-sans overflow-x-hidden selection:bg-expo-black/10 selection:text-expo-black">
+      {/* ═══════ HERO — locked to viewport ═══════ */}
+      <section className="relative w-full h-[100dvh] min-h-[560px] max-h-[1200px] flex flex-col">
+        {/* ── Nav ── */}
+        <header className="shrink-0 w-full px-5 sm:px-8 lg:px-12 pt-5 sm:pt-6">
+          <nav className="max-w-[1120px] mx-auto flex items-center justify-between">
             <Link
-              href="/login"
-              className="group inline-flex items-center gap-1.5 bg-stone-800 text-white rounded-full px-4 py-2 text-[13px] font-medium hover:bg-stone-700 active:scale-[0.97] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] relative z-10"
+              href="/"
+              className="font-bold text-expo-black text-[17px] tracking-[-0.02em] hover:opacity-70 transition-opacity"
             >
-              Get started
-              <span className="w-[18px] h-[18px] rounded-full bg-white/15 flex items-center justify-center group-hover:translate-x-0.5 group-hover:-translate-y-[1px] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]">
-                <ArrowUpRight size={10} />
-              </span>
+              SwiftLogNG
             </Link>
+
+            <div className="flex items-center gap-3 sm:gap-5">
+              <Link
+                href="/login"
+                className="text-[14px] font-medium text-slate-gray hover:text-expo-black transition-colors hidden sm:block"
+              >
+                Log in
+              </Link>
+              <Link
+                href="/login"
+                className="bg-expo-black text-white rounded-[9999px] px-5 py-[9px] text-[13px] sm:text-[14px] font-medium hover:scale-[1.03] active:scale-[0.97] transition-transform"
+              >
+                Get Started
+              </Link>
+            </div>
           </nav>
         </header>
 
-        {/* ─── Hero ─── */}
-        <section className="relative pt-16 pb-24 md:pt-24 md:pb-32 lg:pt-32 lg:pb-40">
-          <div className="max-w-[1400px] mx-auto px-6 md:px-10">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-              {/* ─ Left: Copy ─ */}
-              <div className="flex flex-col pt-4 lg:pt-8">
-                {/* Headline */}
-                <h1
-                  className="animate-fade-up font-display font-medium text-[clamp(2.5rem,5.5vw,4.5rem)] leading-[1.06] tracking-tight text-stone-900 mb-6"
-                >
-                  Your logbook, sorted
-                  <br />
-                  <span className="text-stone-400">before Monday morning.</span>
-                </h1>
-
-                {/* Subtitle */}
-                <p
-                  className="animate-fade-up [animation-delay:120ms] text-[15px] md:text-base text-stone-500 leading-relaxed max-w-[46ch] mb-10"
-                >
-                  Drop a quick summary of your week and let AI write your daily
-                  entries — tailored to your role, company, and department.
-                </p>
-
-                {/* CTA group */}
-                <div className="animate-fade-up [animation-delay:240ms] flex flex-col sm:flex-row items-start sm:items-center gap-5">
-                  <Link
-                    href="/login"
-                    className="group inline-flex items-center gap-3 bg-stone-800 text-white rounded-full px-7 py-3.5 text-sm font-medium hover:bg-stone-700 active:scale-[0.97] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
-                  >
-                    Start writing
-                    <span className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center group-hover:translate-x-0.5 group-hover:-translate-y-[1px] group-hover:scale-105 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]">
-                      <ArrowUpRight size={13} />
-                    </span>
-                  </Link>
-                  <span className="text-[13px] text-stone-400 flex items-center gap-1.5">
-                    <CheckIcon />
-                    Free to use · No credit card
-                  </span>
-                </div>
-              </div>
-
-              {/* ─ Right: Floating day cards ─ */}
-              <div className="relative min-h-[420px] hidden lg:block">
-                {DAY_CARDS.map((card) => (
-                  <div
-                    key={card.day}
-                    className={`absolute w-[280px] animate-fade-up ${card.delay} ${card.position} ${card.rotate} hover:rotate-0 hover:scale-[1.03] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] cursor-default`}
-                  >
-                    <div className={`rounded-2xl ${card.accent} border p-4 shadow-warm`}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`w-2 h-2 rounded-full ${card.dot}`} />
-                        <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-[0.1em]">
-                          {card.day}
-                        </span>
-                      </div>
-                      <p className="text-[13px] text-stone-600 leading-relaxed">
-                        {card.content}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* ─ Mobile: Stacked day cards ─ */}
-              <div className="flex flex-col gap-3 lg:hidden">
-                {DAY_CARDS.slice(0, 3).map((card) => (
-                  <div
-                    key={card.day}
-                    className={`animate-fade-up ${card.delay}`}
-                  >
-                    <div className={`rounded-2xl ${card.accent} border p-4 shadow-warm`}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`w-2 h-2 rounded-full ${card.dot}`} />
-                        <span className="text-[11px] font-semibold text-stone-500 uppercase tracking-[0.1em]">
-                          {card.day}
-                        </span>
-                      </div>
-                      <p className="text-[13px] text-stone-600 leading-relaxed">
-                        {card.content}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+        {/* ── Center Block ── */}
+        <div className="flex-1 flex flex-col justify-center items-center text-center px-5 sm:px-8">
+          {/* Pill badge */}
+          <div className="animate-fade-up mb-5 sm:mb-6 inline-flex items-center gap-2 px-3.5 py-[6px] rounded-[9999px] border border-subtle-border bg-white shadow-whisper">
+            <span className="w-[6px] h-[6px] rounded-full bg-link-cobalt" />
+            <span className="text-slate-gray text-[11px] sm:text-[12px] font-semibold uppercase tracking-[0.06em]">
+              AI logbook assistant
+            </span>
           </div>
-        </section>
-      </div>
 
-      {/* ─── Trusted by students from ─── */}
-      <section className="py-20 md:py-28">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 mb-10">
-          <p className="text-center text-[11px] font-medium text-stone-400 uppercase tracking-[0.2em]">
-            Trusted by students from
+          {/* Headline */}
+          <h1 className="animate-fade-up [animation-delay:120ms] font-display font-bold text-expo-black text-[clamp(2.25rem,7.5vw,4.5rem)] leading-[1.08] tracking-[-0.035em] max-w-[720px]">
+            Your <span className="text-link-cobalt">logbook</span>, sorted before Monday.
+          </h1>
+
+          {/* Sub copy */}
+          <p className="animate-fade-up [animation-delay:260ms] mt-4 sm:mt-5 text-[clamp(14px,2.5vw,17px)] text-slate-gray leading-[1.55] max-w-[440px] font-normal">
+            Summarise your week in one sentence. AI writes five tailored daily entries — matched to your role, company, and department.
           </p>
+
+          {/* CTAs */}
+          <div className="animate-fade-up [animation-delay:400ms] mt-7 sm:mt-8 flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            <Link
+              href="/login"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-expo-black text-white rounded-[9999px] px-7 py-3 text-[15px] font-medium shadow-elevated hover:-translate-y-[2px] active:translate-y-0 transition-all duration-300"
+            >
+              Start Writing
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:translate-x-0.5">
+                <path d="M4.5 11.5L11.5 4.5" />
+                <path d="M5 4.5H11.5V11" />
+              </svg>
+            </Link>
+            <Link
+              href="/login"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-[9999px] px-7 py-3 text-[15px] font-medium text-near-black bg-white border border-subtle-border shadow-whisper hover:border-input-border hover:shadow-elevated transition-all duration-300"
+            >
+              See how it works
+            </Link>
+          </div>
         </div>
 
-        {/* Marquee container */}
-        <div className="relative overflow-hidden">
-          {/* Fade edges */}
-          <div className="absolute left-0 top-0 bottom-0 w-32 md:w-48 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-32 md:w-48 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+        {/* ── Bottom Log Strip — always visible, never overflows ── */}
+        <div className="shrink-0 w-full px-5 sm:px-8 lg:px-12 pb-6 sm:pb-8 animate-fade-up [animation-delay:600ms]">
+          <div className="max-w-[1120px] mx-auto">
+            {/* Label */}
+            <p className="text-[11px] font-semibold text-silver uppercase tracking-[0.08em] mb-3 text-center sm:text-left">
+              Sample generated week
+            </p>
 
-          {/* Scrolling track — duplicated for seamless loop */}
-          <div className="marquee-track flex items-center gap-5 md:gap-6 w-max">
-            {[...SCHOOLS, ...SCHOOLS].map((school, i) => (
-              <span
-                key={`${school}-${i}`}
-                className="inline-flex items-center rounded-full px-5 py-2 bg-stone-100/70 border border-stone-200/50 text-stone-400 text-[13px] md:text-sm font-medium tracking-tight whitespace-nowrap select-none shadow-[0_1px_2px_rgba(28,25,23,0.04)]"
-              >
-                {school}
-              </span>
-            ))}
+            {/* Log cards row */}
+            <div className="flex gap-2.5 sm:gap-3 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-none sm:overflow-visible sm:grid sm:grid-cols-5">
+              {DAYS.map((day, i) => (
+                <div
+                  key={day}
+                  className="snap-start shrink-0 w-[72vw] sm:w-auto bg-white border border-subtle-border rounded-[10px] p-4 sm:p-3.5 lg:p-4 flex flex-col gap-2 hover:shadow-whisper transition-shadow duration-300"
+                >
+                  <span className="text-[11px] font-bold text-silver uppercase tracking-[0.05em]">
+                    {day}
+                  </span>
+                  <p className="text-[13px] sm:text-[12px] lg:text-[13px] text-near-black leading-[1.45] line-clamp-3">
+                    {LOG_PREVIEWS[i]}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>

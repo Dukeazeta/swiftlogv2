@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
-import { generateWeeklyLogs, type StudentContext } from "@/lib/ai";
+import {
+  AiProviderError,
+  generateWeeklyLogs,
+  getConfiguredAiProviders,
+  getDefaultAiProvider,
+  type StudentContext,
+} from "@/lib/ai";
 import { generateLogSchema } from "@/lib/validations";
 import { getWeekDates, hasExceededUsageLimit } from "@/lib/utils";
 
@@ -36,7 +42,25 @@ export async function POST(request: Request) {
 
     // Validate request body
     const body = await request.json();
-    const { weekNumber, summary } = generateLogSchema.parse(body);
+    const { weekNumber, summary, provider: requestedProvider } =
+      generateLogSchema.parse(body);
+    const availableProviders = getConfiguredAiProviders();
+    const provider =
+      requestedProvider ??
+      user.profile.preferredAiProvider ??
+      getDefaultAiProvider(availableProviders);
+
+    if (!provider) {
+      return NextResponse.json(
+        {
+          error: "No AI provider is connected yet. Add an API key first.",
+          code: "no_available_providers",
+          provider: null,
+          availableProviders,
+        },
+        { status: 503 }
+      );
+    }
 
     // Get week dates
     const { weekStart, weekEnd } = getWeekDates(
@@ -58,7 +82,7 @@ export async function POST(request: Request) {
     };
 
     // Generate logs using AI
-    const generatedLogs = await generateWeeklyLogs(context, summary);
+    const generatedLogs = await generateWeeklyLogs(context, summary, provider);
 
     // Update usage count (reset if new month)
     const now = new Date();
@@ -81,6 +105,25 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Invalid data provided" },
         { status: 400 }
+      );
+    }
+
+    if (error instanceof AiProviderError) {
+      const status =
+        error.code === "no_available_providers"
+          ? 503
+          : error.code === "provider_not_configured"
+          ? 400
+          : 502;
+
+      return NextResponse.json(
+        {
+          error: error.message,
+          code: error.code,
+          provider: error.provider,
+          availableProviders: error.availableProviders,
+        },
+        { status }
       );
     }
 

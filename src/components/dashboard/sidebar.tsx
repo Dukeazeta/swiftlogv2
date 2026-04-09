@@ -97,14 +97,14 @@ export function Sidebar({ user, profile, logs, needsOnboarding }: SidebarProps) 
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-200 ease-in-out",
+          "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-subtle-border flex flex-col transition-transform duration-200 ease-in-out shadow-whisper",
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         {/* Logo */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-subtle-border">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-expo-black rounded-[8px] flex items-center justify-center shadow-whisper">
               <span className="text-white font-bold text-sm">S</span>
             </div>
             <span className="font-semibold text-lg">SwiftLogNG</span>
@@ -114,7 +114,7 @@ export function Sidebar({ user, profile, logs, needsOnboarding }: SidebarProps) 
         <ScrollArea className="flex-1 px-3 py-4">
           {/* Profile Section */}
           <div className="mb-4">
-            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <div className="flex items-center gap-3 p-2 rounded-[6px] hover:bg-cloud-gray transition-colors">
               <Avatar className="h-9 w-9">
                 <AvatarImage src={user.image || undefined} alt={user.name || "User"} />
                 <AvatarFallback>{initials}</AvatarFallback>
@@ -136,7 +136,7 @@ export function Sidebar({ user, profile, logs, needsOnboarding }: SidebarProps) 
             <>
               {/* School Details */}
               <Collapsible open={schoolOpen} onOpenChange={setSchoolOpen}>
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-lg hover:bg-gray-100 transition-colors text-sm">
+                <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-[6px] hover:bg-cloud-gray transition-colors text-[14px]">
                   <div className="flex items-center gap-2">
                     <GraduationCap size={16} className="text-gray-500" />
                     <span>School Details</span>
@@ -155,7 +155,7 @@ export function Sidebar({ user, profile, logs, needsOnboarding }: SidebarProps) 
 
               {/* Company Details */}
               <Collapsible open={companyOpen} onOpenChange={setCompanyOpen}>
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-lg hover:bg-gray-100 transition-colors text-sm">
+                <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-[6px] hover:bg-cloud-gray transition-colors text-[14px]">
                   <div className="flex items-center gap-2">
                     <Building2 size={16} className="text-gray-500" />
                     <span>Company Details</span>
@@ -202,7 +202,7 @@ export function Sidebar({ user, profile, logs, needsOnboarding }: SidebarProps) 
 
               {/* Chat History */}
               <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-lg hover:bg-gray-100 transition-colors text-sm">
+                <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-[6px] hover:bg-cloud-gray transition-colors text-[14px]">
                   <div className="flex items-center gap-2">
                     <History size={16} className="text-gray-500" />
                     <span>Log History</span>
@@ -229,9 +229,9 @@ export function Sidebar({ user, profile, logs, needsOnboarding }: SidebarProps) 
                         key={log.id}
                         href={`/dashboard?week=${log.weekNumber}`}
                         className={cn(
-                          "flex items-center gap-2 pl-6 pr-2 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded transition-colors",
+                          "flex items-center gap-2 pl-6 pr-2 py-1.5 text-xs text-slate-gray hover:bg-cloud-gray rounded-[6px] transition-colors",
                           selectedWeek === String(log.weekNumber) &&
-                            "bg-gray-100 text-gray-900"
+                            "bg-cloud-gray text-expo-black"
                         )}
                         onClick={() => setIsOpen(false)}
                       >
@@ -252,10 +252,10 @@ export function Sidebar({ user, profile, logs, needsOnboarding }: SidebarProps) 
         </ScrollArea>
 
         {/* Logout Button */}
-        <div className="p-3 border-t border-gray-200">
+        <div className="p-3 border-t border-subtle-border">
           <Button
             variant="ghost"
-            className="w-full justify-start text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            className="w-full justify-start text-slate-gray hover:text-expo-black hover:bg-cloud-gray"
             onClick={() => signOut({ callbackUrl: "/login" })}
           >
             <LogOut size={16} className="mr-2" />

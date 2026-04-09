@@ -11,7 +11,6 @@ import {
   PencilLine,
   RefreshCw,
   Save,
-  Send,
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +19,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { LogTable } from "@/components/dashboard/log-table";
+import {
+  AI_PROVIDER_LABELS,
+  type AiProviderId,
+} from "@/lib/ai-providers";
 import {
   calculateTotalWeeks,
   calculateWeekNumber,
@@ -38,10 +41,12 @@ interface ProfileData {
   jobRole: string;
   startDate: string;
   endDate: string;
+  preferredAiProvider: AiProviderId | null;
 }
 
 interface DashboardEditorProps {
   profile: ProfileData;
+  availableProviders: AiProviderId[];
 }
 
 type EditorStatus =
@@ -54,12 +59,33 @@ type EditorStatus =
 const MIN_SUMMARY_LENGTH = 20;
 
 const statusTheme: Record<EditorStatus, string> = {
-  empty: "border-gray-200 bg-gray-50 text-gray-700",
+  empty: "border-subtle-border bg-cloud-gray text-slate-gray",
   draft: "border-amber-200 bg-amber-50 text-amber-800",
   saved: "border-emerald-200 bg-emerald-50 text-emerald-800",
   saving: "border-blue-200 bg-blue-50 text-blue-800",
   "generation-error": "border-red-200 bg-red-50 text-red-700",
 };
+
+interface GenerateErrorResponse {
+  error?: string;
+  code?: string;
+  provider?: AiProviderId | null;
+  availableProviders?: AiProviderId[];
+}
+
+function getInitialProvider(
+  preferredAiProvider: AiProviderId | null,
+  availableProviders: AiProviderId[]
+): AiProviderId | null {
+  if (
+    preferredAiProvider &&
+    availableProviders.includes(preferredAiProvider)
+  ) {
+    return preferredAiProvider;
+  }
+
+  return availableProviders[0] ?? null;
+}
 
 function getStatusCopy(status: EditorStatus, selectedWeek: number | null): string {
   const weekLabel = selectedWeek ? `Week ${selectedWeek}` : "This week";
@@ -81,7 +107,37 @@ function getStatusCopy(status: EditorStatus, selectedWeek: number | null): strin
   }
 }
 
-export function DashboardEditor({ profile }: DashboardEditorProps) {
+function buildGenerationErrorMessage(errorData: GenerateErrorResponse): string {
+  const availableProviders = errorData.availableProviders ?? [];
+  const availableLabels = availableProviders.map(
+    (provider) => AI_PROVIDER_LABELS[provider]
+  );
+
+  if (errorData.code === "no_available_providers") {
+    return "No AI provider is connected yet. Add an API key first.";
+  }
+
+  if (errorData.code === "provider_generation_failed" && errorData.provider) {
+    const otherLabels = availableLabels.filter(
+      (label) => label !== AI_PROVIDER_LABELS[errorData.provider!]
+    );
+
+    return otherLabels.length > 0
+      ? `${AI_PROVIDER_LABELS[errorData.provider]} could not generate your draft right now. Try ${otherLabels.join(" or ")}.`
+      : `${AI_PROVIDER_LABELS[errorData.provider]} could not generate your draft right now. Please try again soon.`;
+  }
+
+  if (errorData.code === "provider_not_configured" && availableLabels.length > 0) {
+    return `That AI option is not available right now. Choose ${availableLabels.join(" or ")} instead.`;
+  }
+
+  return errorData.error || "Failed to generate logs";
+}
+
+export function DashboardEditor({
+  profile,
+  availableProviders,
+}: DashboardEditorProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -91,9 +147,13 @@ export function DashboardEditor({ profile }: DashboardEditorProps) {
   const [entries, setEntries] = useState<DailyLogEntry[] | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingProvider, setIsSavingProvider] = useState(false);
   const [isLoadingSavedWeek, setIsLoadingSavedWeek] = useState(false);
   const [status, setStatus] = useState<EditorStatus>("empty");
   const [error, setError] = useState<string | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<AiProviderId | null>(
+    () => getInitialProvider(profile.preferredAiProvider, availableProviders)
+  );
 
   const siwesStartDate = useMemo(() => new Date(profile.startDate), [profile.startDate]);
   const siwesEndDate = useMemo(() => new Date(profile.endDate), [profile.endDate]);
@@ -102,6 +162,12 @@ export function DashboardEditor({ profile }: DashboardEditorProps) {
     [siwesEndDate, siwesStartDate]
   );
   const weekParam = searchParams.get("week");
+
+  useEffect(() => {
+    setSelectedProvider(
+      getInitialProvider(profile.preferredAiProvider, availableProviders)
+    );
+  }, [availableProviders, profile.preferredAiProvider]);
 
   useEffect(() => {
     if (!weekParam) {
@@ -254,7 +320,11 @@ export function DashboardEditor({ profile }: DashboardEditorProps) {
   };
 
   const handleGenerate = async () => {
-    if (!selectedWeek || summary.trim().length < MIN_SUMMARY_LENGTH) {
+    if (
+      !selectedWeek ||
+      !selectedProvider ||
+      summary.trim().length < MIN_SUMMARY_LENGTH
+    ) {
       return;
     }
 
@@ -268,12 +338,13 @@ export function DashboardEditor({ profile }: DashboardEditorProps) {
         body: JSON.stringify({
           weekNumber: selectedWeek,
           summary: summary.trim(),
+          provider: selectedProvider,
         }),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to generate logs");
+        const errorData: GenerateErrorResponse = await response.json();
+        throw new Error(buildGenerationErrorMessage(errorData));
       }
 
       const data: { entries: DailyLogEntry[] } = await response.json();
@@ -330,8 +401,41 @@ export function DashboardEditor({ profile }: DashboardEditorProps) {
     }
   };
 
+  const handleProviderChange = async (nextProvider: AiProviderId) => {
+    const previousProvider = selectedProvider;
+
+    setSelectedProvider(nextProvider);
+    setError(null);
+    setIsSavingProvider(true);
+
+    try {
+      const response = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          preferredAiProvider: nextProvider,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to save AI preference");
+      }
+    } catch (savePreferenceError) {
+      setSelectedProvider(previousProvider);
+      setError(
+        savePreferenceError instanceof Error
+          ? savePreferenceError.message
+          : "Failed to save AI preference"
+      );
+    } finally {
+      setIsSavingProvider(false);
+    }
+  };
+
   const isGenerateDisabled =
     !selectedWeek ||
+    !selectedProvider ||
     summary.trim().length < MIN_SUMMARY_LENGTH ||
     isGenerating ||
     isLoadingSavedWeek;
@@ -343,14 +447,14 @@ export function DashboardEditor({ profile }: DashboardEditorProps) {
     isLoadingSavedWeek;
 
   return (
-    <div className="p-4 lg:p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="p-6 lg:p-12">
+      <div className="max-w-5xl mx-auto space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-3xl font-display font-bold text-expo-black tracking-tight">
               Welcome, {profile.fullName.split(" ")[0]}
             </h1>
-            <p className="text-gray-500">
+            <p className="text-[16px] text-slate-gray mt-1">
               Turn your weekly summary into a clean SIWES logbook draft.
             </p>
           </div>
@@ -378,7 +482,7 @@ export function DashboardEditor({ profile }: DashboardEditorProps) {
           </div>
         </div>
 
-        <Card className={cn("border", statusTheme[status])}>
+        <Card className={cn("border border-subtle-border shadow-whisper rounded-xl", statusTheme[status])}>
           <CardContent className="flex items-start gap-3 py-4">
             {status === "saved" ? (
               <CheckCircle2 size={20} className="mt-0.5" />
@@ -403,9 +507,9 @@ export function DashboardEditor({ profile }: DashboardEditorProps) {
         )}
 
         <div className="grid lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-1">
+          <Card className="lg:col-span-1 border-subtle-border shadow-whisper rounded-xl">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-[18px] font-semibold text-expo-black flex items-center gap-2">
                 <CalendarDays size={20} />
                 Select Week
               </CardTitle>
@@ -416,7 +520,7 @@ export function DashboardEditor({ profile }: DashboardEditorProps) {
                 selected={selectedDate}
                 onSelect={handleDateSelect}
                 disabled={isDateDisabled}
-                className="rounded-md border"
+                className="rounded-[8px] border border-input-border"
               />
               <p className="text-xs text-muted-foreground mt-3 text-center">
                 Pick any day inside your SIWES period to open that week.
@@ -429,22 +533,61 @@ export function DashboardEditor({ profile }: DashboardEditorProps) {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-2">
+          <Card className="lg:col-span-2 border-subtle-border shadow-whisper rounded-xl">
             <CardHeader>
-              <CardTitle className="text-lg">Weekly Summary</CardTitle>
+              <CardTitle className="text-[18px] font-semibold text-expo-black">Weekly Summary</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <label
+                    htmlFor="ai-provider"
+                    className="text-[14px] font-medium text-near-black"
+                  >
+                    AI provider
+                  </label>
+                  {isSavingProvider && (
+                    <span className="text-xs text-muted-foreground">
+                      Saving your choice...
+                    </span>
+                  )}
+                </div>
+                <select
+                  id="ai-provider"
+                  value={selectedProvider ?? ""}
+                  onChange={(event) =>
+                    handleProviderChange(event.target.value as AiProviderId)
+                  }
+                  disabled={availableProviders.length === 0 || isSavingProvider}
+                  className="flex h-9 w-full rounded-[6px] border border-input-border bg-white px-3 py-1 text-[14px] transition-all hover:bg-cloud-gray focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-link-cobalt disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {availableProviders.length === 0 ? (
+                    <option value="">No AI provider available</option>
+                  ) : (
+                    availableProviders.map((provider) => (
+                      <option key={provider} value={provider}>
+                        {AI_PROVIDER_LABELS[provider]}
+                      </option>
+                    ))
+                  )}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Pick the AI engine you want to use for this draft.
+                </p>
+              </div>
               <Textarea
                 placeholder="Describe what you did this week in simple words. The AI will turn it into a proper Monday-to-Friday logbook draft."
                 value={summary}
                 onChange={(event) => handleSummaryChange(event.target.value)}
                 rows={6}
-                className="resize-none"
+                className="resize-none rounded-[6px] border-input-border focus-visible:ring-link-cobalt z-0"
                 disabled={!selectedWeek || isGenerating || isLoadingSavedWeek}
               />
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <p className="text-xs text-muted-foreground">
-                  {summary.trim().length}/{MIN_SUMMARY_LENGTH} minimum characters to generate
+                  {availableProviders.length === 0
+                    ? "No AI provider is connected yet."
+                    : `${summary.trim().length}/${MIN_SUMMARY_LENGTH} minimum characters to generate`}
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -498,13 +641,13 @@ export function DashboardEditor({ profile }: DashboardEditorProps) {
         )}
 
         {!isLoadingSavedWeek && !entries && selectedWeek && (
-          <Card>
+          <Card className="border-subtle-border shadow-whisper rounded-xl">
             <CardContent className="py-10 text-center">
-              <Send className="mx-auto h-10 w-10 text-gray-300 mb-4" />
-              <h2 className="text-lg font-semibold text-gray-900">
+              <Send className="mx-auto h-10 w-10 text-silver mb-4" />
+              <h2 className="text-[18px] font-semibold text-expo-black">
                 No saved log for Week {selectedWeek}
               </h2>
-              <p className="text-sm text-gray-500 mt-2 max-w-md mx-auto">
+              <p className="text-[14px] text-slate-gray mt-2 max-w-md mx-auto">
                 Write a short summary for this week, generate a draft, edit each
                 day if needed, then save it.
               </p>
@@ -513,10 +656,10 @@ export function DashboardEditor({ profile }: DashboardEditorProps) {
         )}
 
         {entries && !isLoadingSavedWeek && (
-          <div className="space-y-4">
+          <div className="space-y-4 pt-4">
             <div>
-              <h2 className="text-xl font-semibold">Week Editor</h2>
-              <p className="text-sm text-gray-500">
+              <h2 className="text-[20px] font-semibold text-expo-black">Week Editor</h2>
+              <p className="text-[14px] text-slate-gray">
                 Edit each day directly before you save or update this week.
               </p>
             </div>

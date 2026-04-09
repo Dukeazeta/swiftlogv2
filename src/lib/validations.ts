@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AI_PROVIDER_IDS } from "@/lib/ai-providers";
 import { WORK_DAYS } from "@/lib/logbook";
 
 export const onboardingSchema = z.object({
@@ -46,15 +47,22 @@ export const onboardingSchema = z.object({
 
 export type OnboardingFormData = z.infer<typeof onboardingSchema>;
 
+export const aiProviderSchema = z.enum(AI_PROVIDER_IDS);
+
 export const generateLogSchema = z.object({
   weekNumber: z.number().min(1, "Invalid week number"),
   summary: z
     .string()
     .min(20, "Summary must be at least 20 characters")
     .max(2000, "Summary must be less than 2000 characters"),
+  provider: aiProviderSchema.optional(),
 });
 
 export type GenerateLogFormData = z.infer<typeof generateLogSchema>;
+
+export const updateAiPreferenceSchema = z.object({
+  preferredAiProvider: aiProviderSchema.nullable(),
+});
 
 export const workDaySchema = z.enum(WORK_DAYS);
 

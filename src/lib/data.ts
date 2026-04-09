@@ -12,6 +12,7 @@ import {
   weeklyLogs,
   type StudentProfile,
 } from "@/lib/schema";
+import { type AiProviderId } from "@/lib/ai-providers";
 import {
   DailyLogEntry,
   sortEntriesByWorkDay,
@@ -106,6 +107,21 @@ export async function upsertStudentProfile(
       ...data,
       isOnboarded: true,
     })
+    .returning()
+    .get();
+}
+
+export async function updatePreferredAiProvider(
+  userId: string,
+  preferredAiProvider: AiProviderId | null
+) {
+  return db
+    .update(studentProfiles)
+    .set({
+      preferredAiProvider,
+      updatedAt: new Date(),
+    })
+    .where(eq(studentProfiles.userId, userId))
     .returning()
     .get();
 }

@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   Calendar,
+  Settings,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,8 @@ export function Sidebar({ user, profile, logs, needsOnboarding }: SidebarProps) 
     .join("")
     .toUpperCase() || "U";
 
+  const firstName = (profile?.fullName || user.name || "User").split(" ")[0];
+
   if (needsOnboarding && pathname !== "/onboarding") {
     return null;
   }
@@ -78,189 +81,205 @@ export function Sidebar({ user, profile, logs, needsOnboarding }: SidebarProps) 
 
   return (
     <>
-      {/* Mobile menu button */}
+      {/* ═══ Mobile Toggle Button ═══ */}
       <button
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-md shadow-md"
+        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 flex items-center justify-center bg-white border border-subtle-border rounded-[10px] shadow-whisper"
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? "Close menu" : "Open menu"}
       >
-        {isOpen ? <X size={20} /> : <Menu size={20} />}
+        {isOpen ? <X size={18} /> : <Menu size={18} />}
       </button>
 
-      {/* Mobile overlay */}
-      {isOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
+      {/* ═══ Mobile Full-Screen Sidebar ═══ */}
+      <div
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-white border-r border-subtle-border flex flex-col transition-transform duration-200 ease-in-out shadow-whisper",
-          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          "lg:hidden fixed inset-0 z-40 transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         )}
       >
-        {/* Logo */}
-        <div className="p-4 border-b border-subtle-border">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-expo-black rounded-[8px] flex items-center justify-center shadow-whisper">
-              <span className="text-white font-bold text-sm">S</span>
-            </div>
-            <span className="font-semibold text-lg">SwiftLogNG</span>
-          </Link>
-        </div>
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-expo-black/20 backdrop-blur-[2px]"
+          onClick={() => setIsOpen(false)}
+        />
 
-        <ScrollArea className="flex-1 px-3 py-4">
-          {/* Profile Section */}
-          <div className="mb-4">
-            <div className="flex items-center gap-3 p-2 rounded-[6px] hover:bg-cloud-gray transition-colors">
-              <Avatar className="h-9 w-9">
-                <AvatarImage src={user.image || undefined} alt={user.name || "User"} />
-                <AvatarFallback>{initials}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
-                  {profile?.fullName || user.name || "User"}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {user.email}
-                </p>
-              </div>
+        {/* Panel */}
+        <aside
+          className={cn(
+            "absolute inset-y-0 left-0 w-full max-w-[320px] bg-white flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] shadow-elevated",
+            isOpen ? "translate-x-0" : "-translate-x-full"
+          )}
+        >
+          {/* Header */}
+          <div className="shrink-0 px-5 pt-5 pb-4 border-b border-subtle-border">
+            <div className="flex items-center justify-between">
+              <span className="font-display font-bold text-[15px] text-expo-black uppercase tracking-[0.04em]">
+                Menu
+              </span>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-[6px] hover:bg-cloud-gray transition-colors"
+              >
+                <X size={16} className="text-slate-gray" />
+              </button>
             </div>
           </div>
 
-          <Separator className="my-3" />
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto px-4 py-5">
+            {/* Weekly Logs History */}
+            <p className="text-[11px] font-bold text-silver uppercase tracking-[0.08em] mb-3 px-1">
+              Weekly Logs History
+            </p>
 
-          {profile && (
-            <>
-              {/* School Details */}
-              <Collapsible open={schoolOpen} onOpenChange={setSchoolOpen}>
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-[6px] hover:bg-cloud-gray transition-colors text-[14px]">
-                  <div className="flex items-center gap-2">
-                    <GraduationCap size={16} className="text-gray-500" />
-                    <span>School Details</span>
-                  </div>
-                  {schoolOpen ? (
-                    <ChevronDown size={16} className="text-gray-400" />
-                  ) : (
-                    <ChevronRight size={16} className="text-gray-400" />
-                  )}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-6 pr-2 py-2 space-y-1">
-                  <p className="text-xs text-gray-600">{profile.schoolName}</p>
-                  <p className="text-xs text-gray-500">{profile.schoolDepartment}</p>
-                </CollapsibleContent>
-              </Collapsible>
-
-              {/* Company Details */}
-              <Collapsible open={companyOpen} onOpenChange={setCompanyOpen}>
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-[6px] hover:bg-cloud-gray transition-colors text-[14px]">
-                  <div className="flex items-center gap-2">
-                    <Building2 size={16} className="text-gray-500" />
-                    <span>Company Details</span>
-                  </div>
-                  {companyOpen ? (
-                    <ChevronDown size={16} className="text-gray-400" />
-                  ) : (
-                    <ChevronRight size={16} className="text-gray-400" />
-                  )}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-6 pr-2 py-2 space-y-1">
-                  <p className="text-xs text-gray-600">{profile.companyName}</p>
-                  <p className="text-xs text-gray-500">{profile.companyDepartment}</p>
-                  <p className="text-xs text-gray-500 italic">{profile.jobRole}</p>
-                </CollapsibleContent>
-              </Collapsible>
-
-              <Separator className="my-3" />
-
-              {/* SIWES Duration */}
-              <div className="p-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                  <Calendar size={16} className="text-gray-500" />
-                  <span>SIWES Duration</span>
-                </div>
-                <div className="pl-6 text-xs text-gray-500">
-                  <p>
-                    {new Date(profile.startDate).toLocaleDateString("en-NG", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}{" "}
-                    -{" "}
-                    {new Date(profile.endDate).toLocaleDateString("en-NG", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </p>
-                </div>
-              </div>
-
-              <Separator className="my-3" />
-
-              {/* Chat History */}
-              <Collapsible open={historyOpen} onOpenChange={setHistoryOpen}>
-                <CollapsibleTrigger className="flex items-center justify-between w-full p-2 rounded-[6px] hover:bg-cloud-gray transition-colors text-[14px]">
-                  <div className="flex items-center gap-2">
-                    <History size={16} className="text-gray-500" />
-                    <span>Log History</span>
-                    {logs.length > 0 && (
-                      <Badge variant="secondary" className="text-xs">
-                        {logs.length}
-                      </Badge>
+            <div className="space-y-1">
+              {logs.length === 0 ? (
+                <p className="text-[13px] text-silver px-3 py-6 text-center">
+                  No logs generated yet
+                </p>
+              ) : (
+                logs.map((log) => (
+                  <Link
+                    key={log.id}
+                    href={`/dashboard?week=${log.weekNumber}`}
+                    className={cn(
+                      "flex items-center justify-between px-3 py-2.5 rounded-[8px] text-[14px] transition-colors",
+                      selectedWeek === String(log.weekNumber)
+                        ? "bg-expo-black text-white"
+                        : "text-near-black hover:bg-cloud-gray"
                     )}
-                  </div>
-                  {historyOpen ? (
-                    <ChevronDown size={16} className="text-gray-400" />
-                  ) : (
-                    <ChevronRight size={16} className="text-gray-400" />
-                  )}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="py-2 space-y-1">
-                  {logs.length === 0 ? (
-                    <p className="text-xs text-gray-400 pl-6 py-2">
-                      No logs generated yet
-                    </p>
-                  ) : (
-                    logs.map((log) => (
-                      <Link
-                        key={log.id}
-                        href={`/dashboard?week=${log.weekNumber}`}
-                        className={cn(
-                          "flex items-center gap-2 pl-6 pr-2 py-1.5 text-xs text-slate-gray hover:bg-cloud-gray rounded-[6px] transition-colors",
-                          selectedWeek === String(log.weekNumber) &&
-                            "bg-cloud-gray text-expo-black"
-                        )}
-                        onClick={() => setIsOpen(false)}
-                      >
-                        <span>Week {log.weekNumber}</span>
-                        <span className="text-gray-400">
-                          {new Date(log.weekStart).toLocaleDateString("en-NG", {
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </span>
-                      </Link>
-                    ))
-                  )}
-                </CollapsibleContent>
-              </Collapsible>
-            </>
-          )}
-        </ScrollArea>
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <span className="font-medium">Week {log.weekNumber}</span>
+                    <span className={cn(
+                      "text-[12px]",
+                      selectedWeek === String(log.weekNumber) ? "text-white/60" : "text-silver"
+                    )}>
+                      {new Date(log.weekStart).toLocaleDateString("en-NG", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </Link>
+                ))
+              )}
+            </div>
+          </div>
 
-        {/* Logout Button */}
-        <div className="p-3 border-t border-subtle-border">
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-slate-gray hover:text-expo-black hover:bg-cloud-gray"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+          {/* Bottom — User + Logout */}
+          <div className="shrink-0 px-4 py-4 border-t border-subtle-border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src={user.image || undefined} alt={firstName} />
+                  <AvatarFallback className="bg-cloud-gray text-expo-black text-[13px] font-bold">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-[14px] font-semibold text-expo-black">{firstName}</span>
+              </div>
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="w-8 h-8 flex items-center justify-center rounded-[6px] text-silver hover:text-expo-black hover:bg-cloud-gray transition-colors"
+                aria-label="Logout"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      {/* ═══ Desktop Sidebar ═══ */}
+      <aside className="hidden lg:flex fixed lg:static inset-y-0 left-0 z-40 w-72 bg-white border-r border-subtle-border flex-col shadow-whisper overflow-hidden transition-all">
+        {/* Header */}
+        <div className="p-6 shrink-0">
+          <Link href="/dashboard" className="flex items-center gap-3 group transition-transform active:scale-95">
+            <div className="w-10 h-10 bg-expo-black rounded-[12px] flex items-center justify-center shadow-whisper group-hover:shadow-elevated transition-all">
+              <span className="text-white font-bold text-lg">◇</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-display font-bold text-[16px] text-expo-black leading-tight">SwiftLogNG</span>
+              <span className="text-[11px] text-silver font-bold uppercase tracking-widest mt-0.5">Dashboard</span>
+            </div>
+          </Link>
+        </div>
+
+        {/* Navigation / History */}
+        <div className="flex-1 flex flex-col min-h-0 px-4">
+          <Link 
+            href="/dashboard"
+            className="flex items-center gap-3 px-4 py-3 mb-6 rounded-[14px] bg-cloud-gray hover:bg-cloud-gray/80 text-near-black transition-all group active:scale-[0.98]"
           >
-            <LogOut size={16} className="mr-2" />
-            Logout
-          </Button>
+            <div className="w-8 h-8 rounded-full bg-white border border-subtle-border flex items-center justify-center text-expo-black group-hover:scale-110 transition-transform shadow-whisper">
+              <span className="text-xl font-light leading-none">+</span>
+            </div>
+            <span className="text-[14px] font-semibold">New Log Draft</span>
+          </Link>
+
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <h3 className="text-[11px] font-bold text-silver uppercase tracking-[0.1em] px-4 mb-3">
+              History
+            </h3>
+            <ScrollArea className="flex-1">
+              <div className="space-y-1 pr-4">
+                {logs.length === 0 ? (
+                  <div className="px-4 py-8 text-center bg-cloud-gray/50 rounded-[14px] border border-dashed border-subtle-border">
+                    <p className="text-[13px] text-silver">No logs yet</p>
+                  </div>
+                ) : (
+                  logs.map((log) => (
+                    <Link
+                      key={log.id}
+                      href={`/dashboard?week=${log.weekNumber}`}
+                      className={cn(
+                        "flex items-center justify-between px-4 py-3 rounded-[12px] text-[14px] transition-all group",
+                        selectedWeek === String(log.weekNumber)
+                          ? "bg-expo-black text-white shadow-elevated"
+                          : "text-slate-gray hover:bg-cloud-gray hover:text-expo-black"
+                      )}
+                    >
+                      <span className="font-semibold">Week {log.weekNumber}</span>
+                      <span className={cn(
+                        "text-[11px] font-medium opacity-60",
+                        selectedWeek === String(log.weekNumber) ? "text-white" : "text-silver"
+                      )}>
+                        {new Date(log.weekStart).toLocaleDateString("en-NG", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
+                    </Link>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+        </div>
+
+        {/* User Footer */}
+        <div className="shrink-0 p-4 border-t border-subtle-border mt-auto">
+          <div className="flex items-center justify-between p-2 rounded-[16px] hover:bg-cloud-gray transition-all group cursor-default">
+            <div className="flex items-center gap-3 min-w-0">
+              <Avatar className="h-9 w-9 border border-subtle-border">
+                <AvatarImage src={user.image || undefined} alt={firstName} />
+                <AvatarFallback className="bg-expo-black text-white text-[12px] font-bold">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col min-w-0">
+                <span className="text-[13px] font-bold text-expo-black truncate">{firstName}</span>
+                <span className="text-[11px] text-silver truncate">{user.email}</span>
+              </div>
+            </div>
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="w-8 h-8 flex items-center justify-center rounded-full text-silver hover:text-expo-black hover:bg-white hover:shadow-whisper transition-all"
+              title="Logout"
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
         </div>
       </aside>
     </>

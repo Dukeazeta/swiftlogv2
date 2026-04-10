@@ -19,6 +19,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { LogTable } from "@/components/dashboard/log-table";
 import {
   AI_PROVIDER_LABELS,
@@ -446,233 +453,215 @@ export function DashboardEditor({
     isSaving ||
     isGenerating ||
     isLoadingSavedWeek;
+  const firstName = profile.fullName.split(" ")[0];
+  const providerLabel = selectedProvider ? AI_PROVIDER_LABELS[selectedProvider] : "No AI";
 
   return (
-    <div className="p-6 lg:p-12">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-          <div>
-            <h1 className="text-3xl font-display font-bold text-expo-black tracking-tight">
-              Welcome, {profile.fullName.split(" ")[0]}
-            </h1>
-            <p className="text-[16px] text-slate-gray mt-1">
-              Turn your weekly summary into a clean SIWES logbook draft.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {selectedWeek && (
-              <Badge variant="outline" className="text-sm px-3 py-1">
-                Week {selectedWeek}
-                {weekRange && (
-                  <span className="ml-2 text-muted-foreground">
-                    ({weekRange.start} - {weekRange.end})
-                  </span>
-                )}
-              </Badge>
-            )}
-            <Badge
-              variant="outline"
-              className={cn("px-3 py-1 text-sm capitalize", statusTheme[status])}
-            >
-              {status === "draft"
-                ? "Draft"
-                : status === "generation-error"
-                ? "Generation error"
-                : status}
-            </Badge>
-          </div>
-        </div>
-
-        <Card className={cn("border border-subtle-border shadow-whisper rounded-xl", statusTheme[status])}>
-          <CardContent className="flex items-start gap-3 py-4">
-            {status === "saved" ? (
-              <CheckCircle2 size={20} className="mt-0.5" />
-            ) : status === "saving" ? (
-              <Loader2 size={20} className="mt-0.5 animate-spin" />
-            ) : status === "draft" ? (
-              <PencilLine size={20} className="mt-0.5" />
-            ) : (
-              <AlertCircle size={20} className="mt-0.5" />
-            )}
-            <p className="text-sm leading-6">{getStatusCopy(status, selectedWeek)}</p>
-          </CardContent>
-        </Card>
-
-        {error && (
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="py-4 flex items-center gap-3 text-red-700">
-              <AlertCircle size={20} />
-              <p>{error}</p>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="grid lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-1 border-subtle-border shadow-whisper rounded-xl">
-            <CardHeader>
-              <CardTitle className="text-[18px] font-semibold text-expo-black flex items-center gap-2">
-                <CalendarDays size={20} />
-                Select Week
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={handleDateSelect}
-                disabled={isDateDisabled}
-                className="rounded-[8px] border border-input-border"
-              />
-              <p className="text-xs text-muted-foreground mt-3 text-center">
-                Pick any day inside your SIWES period to open that week.
-              </p>
-              <p className="text-xs text-muted-foreground mt-2 text-center">
-                {totalWeeks > 0
-                  ? `${totalWeeks} week${totalWeeks === 1 ? "" : "s"} available`
-                  : "No valid SIWES weeks found yet"}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="lg:col-span-2 border-subtle-border shadow-whisper rounded-xl">
-            <CardHeader>
-              <CardTitle className="text-[18px] font-semibold text-expo-black">Weekly Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-3">
-                  <label
-                    htmlFor="ai-provider"
-                    className="text-[14px] font-medium text-near-black"
-                  >
-                    AI provider
-                  </label>
-                  {isSavingProvider && (
-                    <span className="text-xs text-muted-foreground">
-                      Saving your choice...
-                    </span>
-                  )}
-                </div>
-                <select
-                  id="ai-provider"
-                  value={selectedProvider ?? ""}
-                  onChange={(event) =>
-                    handleProviderChange(event.target.value as AiProviderId)
-                  }
-                  disabled={availableProviders.length === 0 || isSavingProvider}
-                  className="flex h-9 w-full rounded-[6px] border border-input-border bg-white px-3 py-1 text-[14px] transition-all hover:bg-cloud-gray focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-link-cobalt disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {availableProviders.length === 0 ? (
-                    <option value="">No AI provider available</option>
-                  ) : (
-                    availableProviders.map((provider) => (
-                      <option key={provider} value={provider}>
-                        {AI_PROVIDER_LABELS[provider]}
-                      </option>
-                    ))
-                  )}
-                </select>
-                <p className="text-xs text-muted-foreground">
-                  Pick the AI engine you want to use for this draft.
-                </p>
+    <div className="relative flex flex-col h-[100dvh] bg-cloud-gray overflow-hidden">
+      {/* ── Scrollable Feed ── */}
+      <div className="flex-1 overflow-y-auto pt-16 lg:pt-20 pb-24 lg:pb-32 h-full scroll-smooth">
+        <div className="max-w-3xl mx-auto px-5 w-full h-full">
+          {/* Empty State / Welcome */}
+          {!entries && !isLoadingSavedWeek && (
+            <div className="flex flex-col items-center justify-center min-h-[60dvh] text-center animate-fade-up">
+              <div className="w-12 h-12 bg-expo-black rounded-[14px] flex items-center justify-center mb-8 shadow-whisper">
+                <span className="text-white font-bold text-xl">◇</span>
               </div>
-              <Textarea
-                placeholder="Describe what you did this week in simple words. The AI will turn it into a proper Monday-to-Friday logbook draft."
-                value={summary}
-                onChange={(event) => handleSummaryChange(event.target.value)}
-                rows={6}
-                className="resize-none rounded-[6px] border-input-border focus-visible:ring-link-cobalt z-0"
-                disabled={!selectedWeek || isGenerating || isLoadingSavedWeek}
-              />
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <p className="text-xs text-muted-foreground">
-                  {availableProviders.length === 0
-                    ? "No AI provider is connected yet."
-                    : `${summary.trim().length}/${MIN_SUMMARY_LENGTH} minimum characters to generate`}
-                </p>
+              <h1 className="text-[clamp(2rem,8vw,3.5rem)] font-display font-bold text-expo-black tracking-tight leading-[1.05] max-w-[500px]">
+                What are you working on this week, {firstName}?
+              </h1>
+              <p className="text-[15px] sm:text-[16px] text-slate-gray mt-4 max-w-[340px] leading-relaxed">
+                {selectedWeek
+                  ? `Entering details for Week ${selectedWeek}. AI will draft your daily logs instantly.`
+                  : "Pick a week to get started or just type your summary below."}
+              </p>
+            </div>
+          )}
+
+          {/* Loading Skeleton */}
+          {isLoadingSavedWeek && (
+            <div className="space-y-6 py-12 max-w-2xl mx-auto">
+              <Skeleton className="h-8 w-48 mx-auto rounded-full" />
+              <Skeleton className="h-[300px] w-full rounded-[24px]" />
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-8 max-w-2xl mx-auto p-4 bg-red-50 border border-red-100 rounded-[16px] flex items-start gap-3 text-red-700 text-[14px] animate-fade-up shadow-whisper">
+              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+              <p className="font-medium">{error}</p>
+            </div>
+          )}
+
+          {/* Generated Entries (The Chat "Thread") */}
+          {entries && !isLoadingSavedWeek && (
+            <div className="space-y-8 animate-fade-in max-w-2xl mx-auto">
+              <div className="flex items-center justify-between border-b border-subtle-border pb-4">
+                <div>
+                  <h2 className="text-[18px] font-display font-bold text-expo-black">
+                    Week {selectedWeek} Draft
+                  </h2>
+                  <p className="text-[13px] text-slate-gray mt-0.5 capitalize">
+                    Generated with {providerLabel}
+                  </p>
+                </div>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
+                    size="sm"
                     onClick={handleGenerate}
                     disabled={isGenerateDisabled}
-                    className="gap-2"
+                    className="h-9 px-4 text-[13px] gap-2 rounded-[10px] bg-white border-subtle-border font-semibold shadow-whisper hover:bg-cloud-gray transition-all"
                   >
                     {isGenerating ? (
-                      <>
-                        <Loader2 size={16} className="animate-spin" />
-                        Generating...
-                      </>
+                      <Loader2 size={15} className="animate-spin" />
                     ) : (
-                      <>
-                        <RefreshCw size={16} />
-                        {entries ? "Regenerate Draft" : "Generate Draft"}
-                      </>
+                      <RefreshCw size={15} />
                     )}
+                    Redo
                   </Button>
                   <Button
+                    size="sm"
                     onClick={handleSave}
                     disabled={isSaveDisabled}
-                    className="gap-2"
+                    className="h-9 px-4 text-[13px] gap-2 rounded-[10px] bg-expo-black font-semibold text-white shadow-elevated hover:scale-[1.02] active:scale-[0.98] transition-all"
                   >
                     {isSaving ? (
-                      <>
-                        <Loader2 size={16} className="animate-spin" />
-                        Saving...
-                      </>
+                      <Loader2 size={15} className="animate-spin" />
                     ) : (
-                      <>
-                        <Save size={16} />
-                        Save Week
-                      </>
+                      <Save size={15} />
                     )}
+                    Save
                   </Button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+
+              <div className="bg-white border border-subtle-border rounded-[24px] p-2 shadow-whisper overflow-hidden">
+                <LogTable
+                  entries={entries}
+                  editable
+                  onEntryChange={handleEntryChange}
+                />
+              </div>
+            </div>
+          )}
         </div>
+      </div>
 
-        {isLoadingSavedWeek && (
-          <Card>
-            <CardContent className="py-8 space-y-4">
-              <Skeleton className="h-6 w-40" />
-              <Skeleton className="h-44 w-full" />
-            </CardContent>
-          </Card>
-        )}
+      {/* ── Floating Chat Interaction Pill ── */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-6 bg-gradient-to-t from-cloud-gray via-cloud-gray to-transparent pointer-events-none">
+        <div className="max-w-2xl mx-auto pointer-events-auto">
+          <div className="relative rounded-[32px] border border-subtle-border bg-white shadow-elevated p-1.5 transition-all focus-within:ring-2 focus-within:ring-expo-black/5">
+            <div className="flex items-end gap-1 px-1">
+              {/* Tool Button (+) */}
+              <div className="pb-1.5">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button className="w-10 h-10 rounded-full flex items-center justify-center text-slate-gray hover:bg-cloud-gray hover:text-expo-black transition-colors" title="Select Week">
+                      <span className="text-2xl font-light leading-none">+</span>
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[400px] border-none shadow-elevated rounded-[24px] p-6">
+                    <DialogHeader>
+                      <DialogTitle className="font-display font-bold text-xl">Jump to Week</DialogTitle>
+                      <p className="text-sm text-slate-gray">
+                        Select a date within your SIWES period.
+                      </p>
+                    </DialogHeader>
+                    <div className="py-6 flex justify-center">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={(date) => {
+                          handleDateSelect(date);
+                          // Close dialog would happen automatically if it were a popover, 
+                          // but for simplicity we'll just allow multiple picks
+                        }}
+                        disabled={isDateDisabled}
+                        className="rounded-[16px] border border-subtle-border"
+                      />
+                    </div>
+                    <div className="text-center text-xs text-silver">
+                      {totalWeeks} weeks available in your period
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
 
-        {!isLoadingSavedWeek && !entries && selectedWeek && (
-          <Card className="border-subtle-border shadow-whisper rounded-xl">
-            <CardContent className="py-10 text-center">
-              <Send className="mx-auto h-10 w-10 text-silver mb-4" />
-              <h2 className="text-[18px] font-semibold text-expo-black">
-                No saved log for Week {selectedWeek}
-              </h2>
-              <p className="text-[14px] text-slate-gray mt-2 max-w-md mx-auto">
-                Write a short summary for this week, generate a draft, edit each
-                day if needed, then save it.
-              </p>
-            </CardContent>
-          </Card>
-        )}
+              {/* Input Area */}
+              <div className="flex-1 min-w-0">
+                <Textarea
+                  placeholder="What are we working on this week?"
+                  value={summary}
+                  onChange={(event) => handleSummaryChange(event.target.value)}
+                  rows={1}
+                  className="w-full min-h-[44px] max-h-[200px] resize-none border-none bg-transparent text-[16px] px-3 py-3 focus-visible:ring-0 placeholder:text-silver/50"
+                  disabled={isGenerating || isLoadingSavedWeek}
+                  onInput={(e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    target.style.height = "auto";
+                    target.style.height = target.scrollHeight + "px";
+                  }}
+                />
+              </div>
 
-        {entries && !isLoadingSavedWeek && (
-          <div className="space-y-4 pt-4">
-            <div>
-              <h2 className="text-[20px] font-semibold text-expo-black">Week Editor</h2>
-              <p className="text-[14px] text-slate-gray">
-                Edit each day directly before you save or update this week.
-              </p>
+              {/* Action Button */}
+              <div className="pb-1.5 pr-1.5">
+                <button
+                  onClick={handleGenerate}
+                  disabled={isGenerateDisabled}
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
+                    isGenerateDisabled
+                      ? "bg-cloud-gray/50 text-silver cursor-not-allowed"
+                      : "bg-expo-black text-white shadow-elevated hover:scale-105 active:scale-95"
+                  )}
+                  aria-label="Generate Draft"
+                >
+                  {isGenerating ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
-            <LogTable
-              entries={entries}
-              editable
-              onEntryChange={handleEntryChange}
-            />
+            {/* AI Provider Switcher Pill */}
+            <div className="absolute -top-10 left-4 flex items-center gap-2">
+              <div className="bg-white border border-subtle-border rounded-full px-3 py-1.5 shadow-whisper flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-link-cobalt animate-pulse" />
+                <select
+                  value={selectedProvider ?? ""}
+                  onChange={(e) => handleProviderChange(e.target.value as AiProviderId)}
+                  className="bg-transparent text-[11px] font-bold text-slate-gray uppercase tracking-wider outline-none cursor-pointer"
+                >
+                  {availableProviders.map((p) => (
+                    <option key={p} value={p}>
+                      {AI_PROVIDER_LABELS[p]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              {summary.trim().length > 0 && summary.trim().length < MIN_SUMMARY_LENGTH && (
+                <div className="bg-white border border-subtle-border rounded-full px-3 py-1.5 shadow-whisper text-[10px] font-bold text-silver">
+                  {summary.trim().length}/{MIN_SUMMARY_LENGTH}
+                </div>
+              )}
+            </div>
           </div>
-        )}
+          
+          <p className="text-[10px] text-silver text-center mt-3 font-medium uppercase tracking-[0.15em] opacity-80">
+            AI can make mistakes. Verify your logbook entries.
+          </p>
+        </div>
       </div>
     </div>
   );
 }
+
+

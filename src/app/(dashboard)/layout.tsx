@@ -21,14 +21,14 @@ export default async function DashboardLayout({
     const { profile, logs } = await getDashboardLayoutData(session.user.id);
 
     return (
-      <div className="flex h-screen bg-cloud-gray">
+      <div className="flex h-[100dvh] bg-cloud-gray">
         <Sidebar
           user={session.user}
           profile={profile}
           logs={logs}
           needsOnboarding={!profile}
         />
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-auto lg:overflow-auto">{children}</main>
       </div>
     );
   } catch (error) {

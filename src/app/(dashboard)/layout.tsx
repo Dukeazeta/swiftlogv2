@@ -17,11 +17,10 @@ export default async function DashboardLayout({
       redirect("/login");
     }
 
-    // Check if user has completed onboarding
     const { profile, logs } = await getDashboardLayoutData(session.user.id);
 
     return (
-      <div className="flex h-[100dvh] bg-cloud-gray">
+      <div className="flex h-[100dvh] bg-surface">
         <Sidebar
           user={session.user}
           profile={profile}
@@ -35,12 +34,12 @@ export default async function DashboardLayout({
     console.error("Dashboard layout failed to initialize:", error);
 
     return (
-      <main className="min-h-screen bg-cloud-gray flex items-center justify-center p-6">
-        <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h1 className="text-xl font-semibold text-gray-900">
+      <main className="min-h-screen bg-surface flex items-center justify-center p-6">
+        <div className="w-full max-w-md rounded-lg border border-border-gray bg-canvas p-6 shadow-card">
+          <h1 className="text-xl font-semibold text-near-black">
             Database connection unavailable
           </h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-mid-gray">
             SwiftLogNG could not connect to its database while loading your
             dashboard. This is usually an environment or network issue, not a
             problem with your account.

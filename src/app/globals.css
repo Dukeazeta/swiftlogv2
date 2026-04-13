@@ -21,28 +21,48 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Expo specific colors */
+  --color-webflow-blue: #146ef5;
+  --color-blue-400: #3b89ff;
+  --color-blue-300: #006acc;
+  --color-blue-hover: #0055d4;
+
+  --color-near-black: #080808;
+  --color-gray-800: #222222;
+  --color-gray-700: #363636;
+  --color-mid-gray: #5a5a5a;
+  --color-gray-300: #ababab;
+  --color-border-gray: #d8d8d8;
+  --color-border-hover: #898989;
+
+  --color-accent-purple: #7a3dff;
+  --color-accent-pink: #ed52cb;
+  --color-accent-green: #00d722;
+  --color-accent-orange: #ff6b00;
+  --color-accent-yellow: #ffae13;
+  --color-accent-red: #ee1d36;
+
+  --color-canvas: #ffffff;
+  --color-surface: #fafafa;
   --color-cloud-gray: #f0f0f3;
-  --color-expo-black: #000000;
-  --color-near-black: #1c2024;
-  --color-slate-gray: #60646c;
-  --color-mid-slate: #555860;
-  --color-silver: #b0b4ba;
-  --color-link-cobalt: #0d74ce;
-  --color-subtle-border: #e0e1e6;
-  --color-input-border: #d9d9e0;
-  
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+
   --font-sans: var(--font-inter);
   --font-mono: var(--font-jetbrains-mono);
   --font-display: var(--font-manrope);
-  
-  /* Expo shadow levels */
-  --shadow-whisper: 0px 3px 6px rgba(0, 0, 0, 0.08), 0px 2px 4px rgba(0, 0, 0, 0.07);
-  --shadow-elevated: 0px 10px 20px rgba(0, 0, 0, 0.1), 0px 3px 6px rgba(0, 0, 0, 0.05);
+
+  --shadow-cascade:
+    rgba(0,0,0,0) 0px 84px 24px,
+    rgba(0,0,0,0.01) 0px 54px 22px,
+    rgba(0,0,0,0.04) 0px 30px 18px,
+    rgba(0,0,0,0.08) 0px 13px 13px,
+    rgba(0,0,0,0.09) 0px 3px 7px;
+  --shadow-card: rgba(0,0,0,0.04) 0px 30px 18px, rgba(0,0,0,0.08) 0px 13px 13px, rgba(0,0,0,0.09) 0px 3px 7px;
+  --shadow-sm: rgba(0,0,0,0.08) 0px 3px 7px;
+  --shadow-elevated: 0px 10px 20px rgba(0,0,0,0.1), 0px 3px 6px rgba(0,0,0,0.05);
 
   --animate-fade-up: fade-up 0.7s cubic-bezier(0.32, 0.72, 0, 1) both;
   --animate-fade-in: fade-in 0.5s ease-out both;
@@ -50,26 +70,26 @@
 }
 
 :root {
-  --background: 240 14% 95%; /* #f0f0f3 Cloud Gray */
-  --foreground: 210 13% 13%; /* #1c2024 Near Black */
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3%;
   --card: 0 0% 100%;
-  --card-foreground: 210 13% 13%;
+  --card-foreground: 0 0% 3%;
   --popover: 0 0% 100%;
-  --popover-foreground: 210 13% 13%;
-  --primary: 0 0% 0%; /* Expo Black */
-  --primary-foreground: 0 0% 100%; /* Pure White */
-  --secondary: 220 6% 40%; /* #60646c Slate Gray */
-  --secondary-foreground: 0 0% 100%;
-  --muted: 240 10% 90%;
-  --muted-foreground: 220 6% 40%;
-  --accent: 211 88% 43%; /* #0d74ce Link Cobalt */
+  --popover-foreground: 0 0% 3%;
+  --primary: 215 92% 52%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 3%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 35%;
+  --accent: 215 92% 52%;
   --accent-foreground: 0 0% 100%;
-  --destructive: 359 69% 74%; /* #eb8e90 Destructive Rose */
+  --destructive: 0 86% 51%;
   --destructive-foreground: 0 0% 100%;
-  --border: 229 13% 89%; /* #e0e1e6 subtle-border */
-  --input: 240 12% 87%; /* #d9d9e0 input-border */
-  --ring: 220 89% 49%; /* Focus Ring */
-  --radius: 0.5rem; /* 8px default card radius */
+  --border: 0 0% 85%;
+  --input: 0 0% 85%;
+  --ring: 215 92% 52%;
+  --radius: 0.25rem;
 }
 
 @keyframes fade-up {
@@ -98,7 +118,7 @@
 }
 
 * {
-  border-color: hsl(var(--border));
+  border-color: var(--color-border-gray);
 }
 
 html {
@@ -106,7 +126,7 @@ html {
 }
 
 body {
-  background-color: var(--color-cloud-gray);
+  background-color: var(--color-canvas);
   color: var(--color-near-black);
 }
 
@@ -118,7 +138,6 @@ body {
   animation-play-state: paused;
 }
 
-/* Hide scrollbar for snap-scroll carousels */
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;

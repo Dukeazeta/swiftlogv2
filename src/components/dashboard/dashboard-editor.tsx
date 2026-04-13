@@ -2,21 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { format } from "date-fns";
 import {
   AlertCircle,
-  CalendarDays,
-  CheckCircle2,
   Loader2,
-  PencilLine,
   RefreshCw,
   Save,
-  Send,
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -66,14 +59,6 @@ type EditorStatus =
 
 const MIN_SUMMARY_LENGTH = 20;
 
-const statusTheme: Record<EditorStatus, string> = {
-  empty: "border-subtle-border bg-cloud-gray text-slate-gray",
-  draft: "border-amber-200 bg-amber-50 text-amber-800",
-  saved: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  saving: "border-blue-200 bg-blue-50 text-blue-800",
-  "generation-error": "border-red-200 bg-red-50 text-red-700",
-};
-
 interface GenerateErrorResponse {
   error?: string;
   code?: string;
@@ -93,26 +78,6 @@ function getInitialProvider(
   }
 
   return availableProviders[0] ?? null;
-}
-
-function getStatusCopy(status: EditorStatus, selectedWeek: number | null): string {
-  const weekLabel = selectedWeek ? `Week ${selectedWeek}` : "This week";
-
-  switch (status) {
-    case "draft":
-      return `${weekLabel} has unsaved changes. Review the text and save when ready.`;
-    case "saved":
-      return `${weekLabel} is saved. You can still edit it and save a new version later.`;
-    case "saving":
-      return `Saving ${weekLabel.toLowerCase()} now. Please wait a moment.`;
-    case "generation-error":
-      return "The AI could not return a clean weekday draft. Please try again.";
-    case "empty":
-    default:
-      return selectedWeek
-        ? `${weekLabel} does not have a saved log yet. Write a short summary and generate a draft.`
-        : "Choose a week to start writing your SIWES logbook.";
-  }
 }
 
 function buildGenerationErrorMessage(errorData: GenerateErrorResponse): string {
@@ -155,7 +120,6 @@ export function DashboardEditor({
   const [entries, setEntries] = useState<DailyLogEntry[] | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isSavingProvider, setIsSavingProvider] = useState(false);
   const [isLoadingSavedWeek, setIsLoadingSavedWeek] = useState(false);
   const [status, setStatus] = useState<EditorStatus>("empty");
   const [error, setError] = useState<string | null>(null);
@@ -264,19 +228,6 @@ export function DashboardEditor({
       cancelled = true;
     };
   }, [selectedWeek]);
-
-  const weekRange = useMemo(() => {
-    if (!selectedWeek) {
-      return null;
-    }
-
-    const { weekStart, weekEnd } = getWeekDates(selectedWeek, siwesStartDate);
-
-    return {
-      start: format(weekStart, "MMM d"),
-      end: format(weekEnd, "MMM d, yyyy"),
-    };
-  }, [selectedWeek, siwesStartDate]);
 
   const isDateDisabled = (date: Date) => {
     return date < siwesStartDate || date > siwesEndDate;
@@ -414,7 +365,6 @@ export function DashboardEditor({
 
     setSelectedProvider(nextProvider);
     setError(null);
-    setIsSavingProvider(true);
 
     try {
       const response = await fetch("/api/profile", {
@@ -436,8 +386,6 @@ export function DashboardEditor({
           ? savePreferenceError.message
           : "Failed to save AI preference"
       );
-    } finally {
-      setIsSavingProvider(false);
     }
   };
 
@@ -457,20 +405,18 @@ export function DashboardEditor({
   const providerLabel = selectedProvider ? AI_PROVIDER_LABELS[selectedProvider] : "No AI";
 
   return (
-    <div className="relative flex flex-col h-[100dvh] bg-cloud-gray overflow-hidden">
-      {/* ── Scrollable Feed ── */}
+    <div className="relative flex flex-col h-[100dvh] bg-surface overflow-hidden">
       <div className="flex-1 overflow-y-auto pt-16 lg:pt-20 pb-24 lg:pb-32 h-full scroll-smooth">
         <div className="max-w-3xl mx-auto px-5 w-full h-full">
-          {/* Empty State / Welcome */}
           {!entries && !isLoadingSavedWeek && (
             <div className="flex flex-col items-center justify-center min-h-[60dvh] text-center animate-fade-up">
-              <div className="w-12 h-12 bg-expo-black rounded-[14px] flex items-center justify-center mb-8 shadow-whisper">
-                <span className="text-white font-bold text-xl">◇</span>
+              <div className="w-12 h-12 bg-webflow-blue rounded-lg flex items-center justify-center mb-8 shadow-sm">
+                <span className="text-white font-bold text-xl">S</span>
               </div>
-              <h1 className="text-[clamp(2rem,8vw,3.5rem)] font-display font-bold text-expo-black tracking-tight leading-[1.05] max-w-[500px]">
+              <h1 className="text-[clamp(2rem,8vw,3.5rem)] font-display font-semibold text-near-black tracking-[-0.03em] leading-[1.05] max-w-[500px]">
                 What are you working on this week, {firstName}?
               </h1>
-              <p className="text-[15px] sm:text-[16px] text-slate-gray mt-4 max-w-[340px] leading-relaxed">
+              <p className="text-[15px] sm:text-[16px] text-mid-gray mt-4 max-w-[340px] leading-relaxed">
                 {selectedWeek
                   ? `Entering details for Week ${selectedWeek}. AI will draft your daily logs instantly.`
                   : "Pick a week to get started or just type your summary below."}
@@ -478,31 +424,28 @@ export function DashboardEditor({
             </div>
           )}
 
-          {/* Loading Skeleton */}
           {isLoadingSavedWeek && (
             <div className="space-y-6 py-12 max-w-2xl mx-auto">
-              <Skeleton className="h-8 w-48 mx-auto rounded-full" />
-              <Skeleton className="h-[300px] w-full rounded-[24px]" />
+              <Skeleton className="h-8 w-48 mx-auto rounded-md" />
+              <Skeleton className="h-[300px] w-full rounded-lg" />
             </div>
           )}
 
-          {/* Error Message */}
           {error && (
-            <div className="mb-8 max-w-2xl mx-auto p-4 bg-red-50 border border-red-100 rounded-[16px] flex items-start gap-3 text-red-700 text-[14px] animate-fade-up shadow-whisper">
+            <div className="mb-8 max-w-2xl mx-auto p-4 bg-accent-red/5 border border-accent-red/30 rounded-lg flex items-start gap-3 text-accent-red text-[14px] animate-fade-up shadow-sm">
               <AlertCircle size={18} className="mt-0.5 shrink-0" />
               <p className="font-medium">{error}</p>
             </div>
           )}
 
-          {/* Generated Entries (The Chat "Thread") */}
           {entries && !isLoadingSavedWeek && (
             <div className="space-y-8 animate-fade-in max-w-2xl mx-auto">
-              <div className="flex items-center justify-between border-b border-subtle-border pb-4">
+              <div className="flex items-center justify-between border-b border-border-gray pb-4">
                 <div>
-                  <h2 className="text-[18px] font-display font-bold text-expo-black">
+                  <h2 className="text-[18px] font-display font-semibold text-near-black">
                     Week {selectedWeek} Draft
                   </h2>
-                  <p className="text-[13px] text-slate-gray mt-0.5 capitalize">
+                  <p className="text-[13px] text-mid-gray mt-0.5 capitalize">
                     Generated with {providerLabel}
                   </p>
                 </div>
@@ -512,7 +455,7 @@ export function DashboardEditor({
                     size="sm"
                     onClick={handleGenerate}
                     disabled={isGenerateDisabled}
-                    className="h-9 px-4 text-[13px] gap-2 rounded-[10px] bg-white border-subtle-border font-semibold shadow-whisper hover:bg-cloud-gray transition-all"
+                    className="h-9 px-4 text-[13px] gap-2 rounded-md border-border-gray font-semibold hover:bg-surface transition-all"
                   >
                     {isGenerating ? (
                       <Loader2 size={15} className="animate-spin" />
@@ -525,7 +468,7 @@ export function DashboardEditor({
                     size="sm"
                     onClick={handleSave}
                     disabled={isSaveDisabled}
-                    className="h-9 px-4 text-[13px] gap-2 rounded-[10px] bg-expo-black font-semibold text-white shadow-elevated hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    className="h-9 px-4 text-[13px] gap-2 rounded-md bg-webflow-blue font-semibold text-white shadow-sm hover:bg-blue-hover transition-all"
                   >
                     {isSaving ? (
                       <Loader2 size={15} className="animate-spin" />
@@ -537,7 +480,7 @@ export function DashboardEditor({
                 </div>
               </div>
 
-              <div className="bg-white border border-subtle-border rounded-[24px] p-2 shadow-whisper overflow-hidden">
+              <div className="bg-canvas border border-border-gray rounded-lg p-2 shadow-sm overflow-hidden">
                 <LogTable
                   entries={entries}
                   editable
@@ -549,23 +492,21 @@ export function DashboardEditor({
         </div>
       </div>
 
-      {/* ── Floating Chat Interaction Pill ── */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-6 bg-gradient-to-t from-cloud-gray via-cloud-gray to-transparent pointer-events-none">
+      <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-6 bg-gradient-to-t from-surface via-surface to-transparent pointer-events-none">
         <div className="max-w-2xl mx-auto pointer-events-auto">
-          <div className="relative rounded-[32px] border border-subtle-border bg-white shadow-elevated p-1.5 transition-all focus-within:ring-2 focus-within:ring-expo-black/5">
+          <div className="relative rounded-lg border border-border-gray bg-canvas shadow-elevated p-1.5 transition-all focus-within:ring-2 focus-within:ring-webflow-blue/20">
             <div className="flex items-end gap-1 px-1">
-              {/* Tool Button (+) */}
               <div className="pb-1.5">
                 <Dialog>
                   <DialogTrigger asChild>
-                    <button className="w-10 h-10 rounded-full flex items-center justify-center text-slate-gray hover:bg-cloud-gray hover:text-expo-black transition-colors" title="Select Week">
+                    <button className="w-10 h-10 rounded-md flex items-center justify-center text-mid-gray hover:bg-surface hover:text-near-black transition-colors" title="Select Week">
                       <span className="text-2xl font-light leading-none">+</span>
                     </button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[400px] border-none shadow-elevated rounded-[24px] p-6">
+                  <DialogContent className="sm:max-w-[400px] shadow-elevated rounded-lg p-6">
                     <DialogHeader>
-                      <DialogTitle className="font-display font-bold text-xl">Jump to Week</DialogTitle>
-                      <p className="text-sm text-slate-gray">
+                      <DialogTitle className="font-display font-semibold text-xl">Jump to Week</DialogTitle>
+                      <p className="text-sm text-mid-gray">
                         Select a date within your SIWES period.
                       </p>
                     </DialogHeader>
@@ -575,28 +516,25 @@ export function DashboardEditor({
                         selected={selectedDate}
                         onSelect={(date) => {
                           handleDateSelect(date);
-                          // Close dialog would happen automatically if it were a popover, 
-                          // but for simplicity we'll just allow multiple picks
                         }}
                         disabled={isDateDisabled}
-                        className="rounded-[16px] border border-subtle-border"
+                        className="rounded-lg border border-border-gray"
                       />
                     </div>
-                    <div className="text-center text-xs text-silver">
+                    <div className="text-center text-xs text-gray-300">
                       {totalWeeks} weeks available in your period
                     </div>
                   </DialogContent>
                 </Dialog>
               </div>
 
-              {/* Input Area */}
               <div className="flex-1 min-w-0">
                 <Textarea
                   placeholder="What are we working on this week?"
                   value={summary}
                   onChange={(event) => handleSummaryChange(event.target.value)}
                   rows={1}
-                  className="w-full min-h-[44px] max-h-[200px] resize-none border-none bg-transparent text-[16px] px-3 py-3 focus-visible:ring-0 placeholder:text-silver/50"
+                  className="w-full min-h-[44px] max-h-[200px] resize-none border-none bg-transparent text-[16px] px-3 py-3 focus-visible:ring-0 placeholder:text-gray-300"
                   disabled={isGenerating || isLoadingSavedWeek}
                   onInput={(e) => {
                     const target = e.target as HTMLTextAreaElement;
@@ -606,16 +544,15 @@ export function DashboardEditor({
                 />
               </div>
 
-              {/* Action Button */}
               <div className="pb-1.5 pr-1.5">
                 <button
                   onClick={handleGenerate}
                   disabled={isGenerateDisabled}
                   className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
+                    "w-10 h-10 rounded-md flex items-center justify-center transition-all duration-200",
                     isGenerateDisabled
-                      ? "bg-cloud-gray/50 text-silver cursor-not-allowed"
-                      : "bg-expo-black text-white shadow-elevated hover:scale-105 active:scale-95"
+                      ? "bg-surface text-gray-300 cursor-not-allowed"
+                      : "bg-webflow-blue text-white shadow-sm hover:bg-blue-hover active:scale-95"
                   )}
                   aria-label="Generate Draft"
                 >
@@ -630,14 +567,13 @@ export function DashboardEditor({
               </div>
             </div>
 
-            {/* AI Provider Switcher Pill */}
             <div className="absolute -top-10 left-4 flex items-center gap-2">
-              <div className="bg-white border border-subtle-border rounded-full px-3 py-1.5 shadow-whisper flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-link-cobalt animate-pulse" />
+              <div className="bg-canvas border border-border-gray rounded-md px-3 py-1.5 shadow-sm flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-webflow-blue animate-pulse" />
                 <select
                   value={selectedProvider ?? ""}
                   onChange={(e) => handleProviderChange(e.target.value as AiProviderId)}
-                  className="bg-transparent text-[11px] font-bold text-slate-gray uppercase tracking-wider outline-none cursor-pointer"
+                  className="bg-transparent text-[11px] font-semibold text-mid-gray uppercase tracking-wider outline-none cursor-pointer"
                 >
                   {availableProviders.map((p) => (
                     <option key={p} value={p}>
@@ -646,16 +582,16 @@ export function DashboardEditor({
                   ))}
                 </select>
               </div>
-              
+
               {summary.trim().length > 0 && summary.trim().length < MIN_SUMMARY_LENGTH && (
-                <div className="bg-white border border-subtle-border rounded-full px-3 py-1.5 shadow-whisper text-[10px] font-bold text-silver">
+                <div className="bg-canvas border border-border-gray rounded-md px-3 py-1.5 shadow-sm text-[10px] font-bold text-gray-300">
                   {summary.trim().length}/{MIN_SUMMARY_LENGTH}
                 </div>
               )}
             </div>
           </div>
-          
-          <p className="text-[10px] text-silver text-center mt-3 font-medium uppercase tracking-[0.15em] opacity-80">
+
+          <p className="text-[10px] text-gray-300 text-center mt-3 font-medium uppercase tracking-[1.5px] opacity-80">
             AI can make mistakes. Verify your logbook entries.
           </p>
         </div>

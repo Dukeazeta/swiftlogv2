@@ -20,22 +20,22 @@ export default async function LoginPage({
     (errorCode && errorMessages[errorCode]) || (errorCode ? errorMessages.Default : null);
 
   return (
-    <div className="w-full bg-white border border-subtle-border rounded-xl p-8 md:p-10 shadow-elevated">
+    <div className="w-full bg-canvas border border-border-gray rounded-lg p-8 md:p-10 shadow-card">
       <div className="space-y-2 text-center mb-10">
         <div className="flex justify-center mb-6">
-          <div className="w-14 h-14 bg-expo-black rounded-[14px] flex items-center justify-center shadow-whisper">
+          <div className="w-14 h-14 bg-webflow-blue rounded-lg flex items-center justify-center shadow-sm">
             <span className="text-white font-bold text-2xl tracking-tighter">S</span>
           </div>
         </div>
-        <h1 className="text-2xl font-display font-bold tracking-tight text-near-black">Sign in to SwiftLogNG</h1>
-        <p className="text-[15px] text-slate-gray font-medium">
+        <h1 className="text-[24px] font-display font-semibold tracking-[-0.02em] text-near-black">Sign in to SwiftLogNG</h1>
+        <p className="text-[15px] text-mid-gray font-medium">
           The AI-powered logbook assistant
         </p>
       </div>
 
       <div className="space-y-6">
         {errorMessage && (
-          <div className="rounded-md border border-[#eb8e90] bg-[#fff0f0] px-4 py-3 text-[14px] text-near-black font-medium text-center">
+          <div className="rounded-md border border-accent-red/30 bg-accent-red/5 px-4 py-3 text-[14px] text-near-black font-medium text-center">
             {errorMessage}
           </div>
         )}
@@ -46,9 +46,9 @@ export default async function LoginPage({
             await signIn("google", { redirectTo: "/dashboard" });
           }}
         >
-          <button 
-            type="submit" 
-            className="w-full flex items-center justify-center gap-3 bg-white border border-input-border focus:outline-none focus:ring-2 focus:ring-link-cobalt focus:ring-offset-1 hover:bg-cloud-gray text-near-black rounded-[6px] px-4 py-3 text-[15px] font-medium transition-all duration-200 active:scale-[0.98]"
+          <button
+            type="submit"
+            className="w-full flex items-center justify-center gap-3 bg-canvas border border-border-gray focus:outline-none focus:ring-2 focus:ring-webflow-blue focus:ring-offset-2 hover:border-border-hover text-near-black rounded-md px-4 py-3 text-[15px] font-medium transition-all duration-200 hover:translate-y-[2px] active:scale-[0.97]"
           >
             <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -59,8 +59,8 @@ export default async function LoginPage({
             Continue with Google
           </button>
         </form>
-        
-        <p className="text-center text-[13px] text-silver pt-4">
+
+        <p className="text-center text-[13px] text-gray-300 pt-4">
           By continuing, you agree to our Terms of Service and Privacy Policy.
         </p>
       </div>

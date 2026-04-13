@@ -13,11 +13,11 @@ interface LogTableProps {
 }
 
 const dayColors: Record<string, string> = {
-  MONDAY: "bg-blue-100 text-blue-800 border-blue-200",
-  TUESDAY: "bg-green-100 text-green-800 border-green-200",
-  WEDNESDAY: "bg-purple-100 text-purple-800 border-purple-200",
-  THURSDAY: "bg-orange-100 text-orange-800 border-orange-200",
-  FRIDAY: "bg-pink-100 text-pink-800 border-pink-200",
+  MONDAY: "bg-webflow-blue/10 text-webflow-blue border-webflow-blue/20",
+  TUESDAY: "bg-accent-green/10 text-accent-green border-accent-green/20",
+  WEDNESDAY: "bg-accent-purple/10 text-accent-purple border-accent-purple/20",
+  THURSDAY: "bg-accent-orange/10 text-accent-orange border-accent-orange/20",
+  FRIDAY: "bg-accent-pink/10 text-accent-pink border-accent-pink/20",
 };
 
 export function LogTable({
@@ -27,34 +27,33 @@ export function LogTable({
 }: LogTableProps) {
   return (
     <>
-      {/* Desktop Table View */}
-      <div className="hidden md:block overflow-hidden rounded-lg border border-gray-200 bg-white">
+      <div className="hidden md:block overflow-hidden rounded-md border border-border-gray bg-canvas">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-surface border-b border-border-gray">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 w-32">
+              <th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-[1.5px] w-32">
                 Day
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900 w-28">
+              <th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-[1.5px] w-28">
                 Date
               </th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">
+              <th className="px-4 py-3 text-left text-[10px] font-semibold text-gray-300 uppercase tracking-[1.5px]">
                 Activities
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-border-gray">
             {entries.map((entry) => (
-              <tr key={entry.day} className="hover:bg-gray-50 transition-colors">
+              <tr key={entry.day} className="hover:bg-surface transition-colors">
                 <td className="px-4 py-4 align-top">
                   <Badge
                     variant="outline"
-                    className={cn("font-medium", dayColors[entry.day])}
+                    className={cn("font-semibold text-[11px] uppercase tracking-[0.5px]", dayColors[entry.day])}
                   >
                     {entry.day}
                   </Badge>
                 </td>
-                <td className="px-4 py-4 align-top text-sm text-gray-500">
+                <td className="px-4 py-4 align-top text-sm text-mid-gray">
                   {formatDate(entry.date)}
                 </td>
                 <td className="px-4 py-4">
@@ -65,7 +64,7 @@ export function LogTable({
                         onEntryChange?.(entry.day, event.target.value)
                       }
                       rows={Math.max(6, entry.content.split("\n").length + 2)}
-                      className="min-h-[180px] bg-gray-50 text-sm leading-relaxed"
+                      className="min-h-[180px] bg-surface text-sm leading-relaxed rounded-md border-border-gray focus-visible:ring-webflow-blue"
                     />
                   ) : (
                     <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
@@ -79,23 +78,22 @@ export function LogTable({
         </table>
       </div>
 
-      {/* Mobile Card View */}
-      <div className="md:hidden space-y-4">
+      <div className="md:hidden space-y-3">
         {entries.map((entry) => (
-          <Card key={entry.day} className="overflow-hidden">
+          <Card key={entry.day} className="overflow-hidden rounded-md border-border-gray">
             <div
               className={cn(
-                "px-4 py-2 border-b flex items-center justify-between",
-                dayColors[entry.day]?.replace("text-", "bg-").split(" ")[0] || "bg-gray-100"
+                "px-4 py-2.5 border-b border-border-gray flex items-center justify-between",
+                dayColors[entry.day]?.split(" ")[0] || "bg-surface"
               )}
             >
               <Badge
                 variant="outline"
-                className={cn("font-medium", dayColors[entry.day])}
+                className={cn("font-semibold text-[11px] uppercase tracking-[0.5px]", dayColors[entry.day])}
               >
                 {entry.day}
               </Badge>
-              <span className="text-xs text-gray-600">{formatDate(entry.date)}</span>
+              <span className="text-[12px] text-mid-gray">{formatDate(entry.date)}</span>
             </div>
             <CardContent className="pt-4">
               {editable ? (
@@ -105,7 +103,7 @@ export function LogTable({
                     onEntryChange?.(entry.day, event.target.value)
                   }
                   rows={Math.max(6, entry.content.split("\n").length + 2)}
-                  className="min-h-[180px] bg-gray-50 text-sm leading-relaxed"
+                  className="min-h-[180px] bg-surface text-sm leading-relaxed rounded-md border-border-gray focus-visible:ring-webflow-blue"
                 />
               ) : (
                 <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
